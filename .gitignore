@@ -1,0 +1,17 @@
+# ignore npm folder
+node_modules
+
+# ignore VS Code Settings
+.vscode
+
+# ignore generated map files
+**/*.js.map
+
+# ignore transcompiled JavaScript
+src/*.js
+test/*.js
+
+
+# ignore Testdata and/or Coverage and NYC Settings
+coverage
+.nyc_output

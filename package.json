@@ -1,0 +1,58 @@
+{
+  "name": "make-exercises-math",
+  "version": "0.1.0",
+  "description": "Make Exercises for Fundamental School Math Lectures",
+  "repository": {
+    "type": "",
+    "url": "https://github.com/M3ssman/make-exercises-math.git"
+  },
+  "main": "src/exercises.math.js",
+  "files": [
+    "src/*.js",
+    "make.exercises.math.d.ts"
+  ],
+  "scripts": {
+    "pretest": "tsc -p .",
+    "mocha": "./node_modules/.bin/mocha --reporter list ./test/**/*.js",
+    "test": "NODE_ENV=test mocha --recursive --compilers ts:ts-node/register --bail",
+    "cover": "NODE_ENV=test nyc npm t",
+    "cover:i": "./node_modules/.bin/istanbul cover ./test/*.js"
+  },
+  "keywords": [
+    "education",
+    "mathematics",
+    "school"
+  ],
+  "author": {
+    "name": "M3ssman",
+    "email": "uwe.hartwig@bitsrc.info"
+  },
+  "dependencies": {
+    "@types/chai": "^3.4.34",
+    "@types/mocha": "^2.2.36"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "nyc": "^10.1.2",
+    "ts-node": "^2.1.0",
+    "typescript": "^2.4.2"
+  },
+  "nyc": {
+    "include": [
+      "src/*.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "json",
+      "html"
+    ],
+    "all": true
+  }
+}
