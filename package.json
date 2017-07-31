@@ -13,8 +13,8 @@
   ],
   "scripts": {
     "pretest": "tsc -p .",
-    "mocha": "./node_modules/.bin/mocha --reporter list ./test/**/*.js",
-    "test": "NODE_ENV=test mocha --recursive --compilers ts:ts-node/register --bail",
+    "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
+    "test": "NODE_ENV=test mocha --recursive --bail",
     "cover": "NODE_ENV=test nyc npm t",
     "cover:i": "./node_modules/.bin/istanbul cover ./test/*.js"
   },
@@ -28,15 +28,15 @@
     "email": "uwe.hartwig@bitsrc.info"
   },
   "dependencies": {
-    "@types/chai": "^3.4.34",
-    "@types/mocha": "^2.2.36"
+    "@types/chai": "^4.0.1",
+    "@types/mocha": "^2.2.41"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
+    "chai": "^4.1.0",
     "istanbul": "^0.4.5",
-    "mocha": "^3.2.0",
+    "mocha": "^3.4.2",
     "nyc": "^10.1.2",
-    "ts-node": "^2.1.0",
+    "ts-node": "^3.3.0",
     "typescript": "^2.4.2"
   },
   "nyc": {
