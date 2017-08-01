@@ -1,4 +1,4 @@
-import { Number, BinaryExpression } from './exercises.math.types';
+import { Number, BinaryExpression } from './exercises.math';
 
 /**
  * Renderer Declaration
@@ -8,12 +8,10 @@ export interface Renderer {
     toMaskedString?(expression: BinaryExpression): string;
 }
 
-
 /**
  * Default Render Implementation
  */
 export class BinaryExpressionRender implements Renderer {
-
     toString(expression: BinaryExpression) {
         return '' + (<Number>expression.term.x).n + '' + expression.term.operation + ''
             + (<Number>expression.term.y).n + '' + expression.eq + '' + expression.value.n;
@@ -35,6 +33,6 @@ export class BinaryExpressionRender implements Renderer {
  */
 export class BinOpTripleRenderer implements Renderer {
     toString(expression: BinaryExpression) {
-        return '(' + expression.term.x + ',' + expression.term.y + ') => ' + expression.value;
+        return '(' + expression.term.x + ' ' + expression.term.operation + ' ' + expression.term.y + ') => ' + expression.value;
     }
 }

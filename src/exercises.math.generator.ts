@@ -1,9 +1,7 @@
 // import { MathBaseOption } from './math.base-option';
-import { NumConstraint } from './exercises.math.constraints';
-import { Term, Number, BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math.types';
+import { NumConstraint } from './exercises.math';
+import { Term, Number, BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math';
 
-
-const operationMap: {} = { add: '+', sub: '-', mult: '*' , div: ':'};
 
 export function generate(operation: (x: number, y: number) => number, constraints: NumConstraint[]): ExerciseMath {
     const exp = _generateExpression(operation, constraints);
@@ -11,7 +9,7 @@ export function generate(operation: (x: number, y: number) => number, constraint
     return em;
 }
 
-export function _generateExpression(operation: (x: number, y: number) => number,
+function _generateExpression(operation: (x: number, y: number) => number,
     constraints: NumConstraint[]): BinaryExpression {
 
     let x = 0, y = 0, r = 0;
@@ -21,7 +19,6 @@ export function _generateExpression(operation: (x: number, y: number) => number,
         x = _getNumber(constraints.filter(c => c.appliesToIndex === 0)[0]);
         y = _getNumber(constraints.filter(c => c.appliesToIndex === 1)[0]);
         nr_ok = __holdXYConstraints(x, y, constraints);
-        // console.log('x = ' + x + ', y = ' + y + ' nr_ok = ' + nr_ok);
         r = operation(x, y);
         const r_const = constraints.filter(c => c.appliesToIndex === 2)[0];
         if (r_const) {
@@ -88,17 +85,9 @@ function __checkSingleConstraint(n: number, constraint: NumConstraint): boolean 
     return true;
 }
 
-export function __generateNumber(to: number, from?: number): number {
+function __generateNumber(to: number, from?: number): number {
     if (from) {
         return to - Math.ceil(Math.random() * (to - from));
     }
     return Math.ceil(Math.random() * to);
-}
-
-function _getOperatorChar(operationName: string): string {
-    if (Object.keys(operationMap).indexOf(operationName) > -1) {
-        return operationMap[operationName];
-    } else {
-        return '+';
-    }
 }
