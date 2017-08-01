@@ -15,3 +15,6 @@ test/*.js
 # ignore Testdata and/or Coverage and NYC Settings
 coverage
 .nyc_output
+
+# ignore debugging stuff
+npm-debug.log
