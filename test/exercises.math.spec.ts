@@ -11,7 +11,7 @@ describe('Test Set with default Options', function () {
         exercises.then((exercises: ExerciseMath[]) => {
             assert.equal(12, exercises.length);
             for (let e = 0; e < exercises.length; e++) {
-                console.log(exercises[e].expression.toString());
+                console.log(exercises[e].expression.toMaskedString());
             }
         });
         done();

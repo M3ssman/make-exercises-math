@@ -1,4 +1,5 @@
 import { generate } from './exercises.math.generator';
+import { Renderer, BinaryExpressionRender} from './exercises.math.renderer';
 
 /**
  * Basic Binary Functions
@@ -6,7 +7,17 @@ import { generate } from './exercises.math.generator';
 function add(a: number, b: number): number { return a + b }
 function sub(a: number, b: number): number { return a - b }
 function mult(a: number, b: number): number { return a * b }
-export const funcMap = { 'add': add, 'sub': sub, 'mult': mult};
+
+interface OpEntry {
+    label: string;
+    func: (a:number, b:number) => number;
+}
+export const funcMap: { [key:string]: OpEntry} = { 
+    'add' : {label: '+', func: add}, 
+    'sub' : {label: '-', func: sub}, 
+    'mult': {label: '*', func: mult},
+    'div' : {label: ':', func: mult}
+};
 
 /**
  * Numeric Bounds
@@ -103,18 +114,22 @@ export interface BinaryExpression extends Expression {
     eq: string;
     value: Number;
     toString(): string;
+    toMaskedString? (): string;
 }
 export class BinaryExpressionImpl implements BinaryExpression {
     value: Number;
     term: Term;
     eq: string;
-    constructor(public expression: BinaryExpression) {
+    constructor(public expression: BinaryExpression, public renderer: Renderer) {
         this.value = expression.value;
         this.term = expression.term;
         this.eq = expression.eq;
     }
+    toMaskedString(): string {
+        return this.renderer.toMaskedString(this);
+    }
     toString(): string {
-        return '(' + (<Number>this.expression.term.x).n + ' '+ this.expression.term.operation.toString() +' ' + (<Number>this.expression.term.y).n +
+        return '(' + (<Number>this.expression.term.x).n + ' tratra '+ this.expression.term.operation.toString() +' ' + (<Number>this.expression.term.y).n +
             ') => ' + (<Number>this.expression.value).n;
     }
 }
@@ -175,8 +190,8 @@ export function makeSet(options?: Options): Promise<ExerciseMath[]> {
             for (let i = 0; i < optionsIn.exercises.length; i++) {
                 let e: Exercise = optionsIn.exercises[i];
                 const constraints: NumConstraint[] = _createConstraints(e);
-                const func: (a: number, b: number) => number = funcMap[e.operations[0]];
-                const em: ExerciseMath = generate(func, constraints);
+                const funct: (a: number, b: number) => number = funcMap[e.operations[0]].func;
+                const em: ExerciseMath = generate(funct, constraints);
                 exercises.push(em);
             }
         }
@@ -310,31 +325,32 @@ export function multR100(): ExerciseMath {
     return generate(mult, constraints);
 }
 
-export function divR100(x?: number, shuffle?: boolean): ExerciseMath {
-    const ex: ExerciseMath = x ? multN10ofX(x) : multN10N10();
-    let x1 = ex.expression.term.x;
-    let x2 = ex.expression.term.y;
-    if (shuffle) {
-        const chance: number = Math.random();
-        if (chance >= .5) {
-            x1 = ex.expression.term.y;
-            x2 = ex.expression.term.x;
-        }
-    }
-    let expr1: BinaryExpression = { term: { x: x1, y: x2, operation: ':' }, value: ex.expression.value, eq: '=' };
-    const expr2: BinaryExpression = new BinaryExpressionImpl(expr1);
-    return new ExerciseMathImpl(expr2);
-}
+// export function divR100(x?: number, shuffle?: boolean): ExerciseMath {
+//     const ex: ExerciseMath = x ? multN10ofX(x) : multN10N10();
+//     let x1 = ex.expression.term.x;
+//     let x2 = ex.expression.term.y;
+//     if (shuffle) {
+//         const chance: number = Math.random();
+//         if (chance >= .5) {
+//             x1 = ex.expression.term.y;
+//             x2 = ex.expression.term.x;
+//         }
+//     }
+//     let expr1: BinaryExpression = { term: { x: x1, y: x2, operation: ':' }, value: ex.expression.value, eq: '=' };
+//     const expr2: BinaryExpression = new BinaryExpressionImpl(expr1, new BinaryExpressionRender());
+//     return new ExerciseMathImpl(expr2);
+// }
 
-export function divN100(): ExerciseMath {
-    const mult: ExerciseMath = multR100();
-    const expr: BinaryExpression = {
-        term: { x: mult.expression.value, y: mult.expression.term.y, operation: ':' },
-        eq: '=',
-        value: mult.expression.value,
-    };
-    return new ExerciseMathImpl(expr);
-}
+// export function divN100(): ExerciseMath {
+//     const mult: ExerciseMath = multR100();
+//     const expr: BinaryExpression = {
+//         term: { x: mult.expression.value, y: mult.expression.term.y, operation: ':' },
+//         eq: '=',
+//         value: mult.expression.value,
+//         toMaskedString(new BinaryExpressionRender())
+//     };
+//     return new ExerciseMathImpl(expr);
+// }
 
 export function setOfMult(): Promise<ExerciseMath[]> {
     return new Promise((resolve, reject) => {

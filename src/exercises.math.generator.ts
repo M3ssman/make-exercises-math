@@ -1,6 +1,7 @@
 // import { MathBaseOption } from './math.base-option';
 import { NumConstraint } from './exercises.math';
 import { Term, Number, BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math';
+import {BinaryExpressionRender} from './exercises.math.renderer';
 
 
 export function generate(operation: (x: number, y: number) => number, constraints: NumConstraint[]): ExerciseMath {
@@ -36,7 +37,7 @@ function _generateExpression(operation: (x: number, y: number) => number,
     let t: Term = { x: nX, y: nY, operation: operation.name };
     let be: BinaryExpression = { term: t, value: nV, eq: '=' };
 
-    return new BinaryExpressionImpl(be);
+    return new BinaryExpressionImpl(be, new BinaryExpressionRender());
 }
 
 function __holdXYConstraints(x: number, y: number, constraints: NumConstraint[]): boolean {
