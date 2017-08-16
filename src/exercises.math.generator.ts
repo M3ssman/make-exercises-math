@@ -4,13 +4,12 @@ import { Term, Number, BinaryExpression, BinaryExpressionImpl, ExerciseMath, Exe
 import {BinaryExpressionRender} from './exercises.math.renderer';
 
 
-export function generate(operation: (x: number, y: number) => number, constraints: NumConstraint[]): ExerciseMath {
-    const exp = _generateExpression(operation, constraints);
-    const em = new ExerciseMathImpl(exp);
-    return em;
-}
+// export function generate(operation: (x: number, y: number) => number, constraints: NumConstraint[]): ExerciseMath {
+    // const em : ExerciseMath = new ExerciseMathImpl(exp);
+    // return _generateExpression(operation, constraints);
+// }
 
-function _generateExpression(operation: (x: number, y: number) => number,
+export function generateExpression(operation: (x: number, y: number) => number,
     constraints: NumConstraint[]): BinaryExpression {
 
     let x = 0, y = 0, r = 0;
@@ -36,8 +35,7 @@ function _generateExpression(operation: (x: number, y: number) => number,
     let nV: Number = { n: r };
     let t: Term = { x: nX, y: nY, operation: operation.name };
     let be: BinaryExpression = { term: t, value: nV, eq: '=' };
-
-    return new BinaryExpressionImpl(be, new BinaryExpressionRender());
+    return be;
 }
 
 function __holdXYConstraints(x: number, y: number, constraints: NumConstraint[]): boolean {
