@@ -7,7 +7,7 @@ export function add(a: number, b: number): number { return a + b }
 export function sub(a: number, b: number): number { return a - b }
 export function mult(a: number, b: number): number { return a * b }
 
-interface OpEntry {
+export interface OpEntry {
     label: string;
     func: (a: number, b: number) => number;
 }

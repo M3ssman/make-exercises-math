@@ -21,3 +21,6 @@ npm-debug.log
 
 # no further sonar
 sonar-project.properties
+
+# no typscript defs
+**/*.d.ts
