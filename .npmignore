@@ -1,0 +1,5 @@
+# ignore test folder for npmjs
+test
+
+#ignore typescript defs for npmjs
+**/*.d.ts
