@@ -41,14 +41,13 @@ export class NumConstraint {
  *  
  */
 export interface Options {
-    exercises: Exercise[];
-    total?: number;
+    exercises: ExerciseType[];
 }
 
 /**
  * Defines a single Exercise of Addition, etc.
  */
-export interface Exercise {
+export interface ExerciseType {
     quantity: number;
     level: number;
     operations: ["add" | "sub" | "mult" | "div"];
@@ -147,27 +146,27 @@ interface ExerciseMakeFunc {
 
 /**
  * 
- * @param options 
+ * @param exerciseTypes 
  */
-export function makeSet(options?: Options): Promise<ExerciseMath[]> {
+export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][]> {
     return new Promise((resolve, reject) => {
-        const exercises: ExerciseMath[] = [];
-
-        // process Settings
-        const optionsIn = options ? options : defaultOptions;
-
-        while (optionsIn.total-- > 0) {
-            for (let i = 0; i < optionsIn.exercises.length; i++) {
-                let e: Exercise = optionsIn.exercises[i];
+        const exercises: ExerciseMath[][] = [];
+        const optionsIn = exerciseTypes ? exerciseTypes : [defaultAdd];
+        let numberOfSets: number = optionsIn.length;
+        for (let a = 0; a < numberOfSets; a++) {
+            const exercise: ExerciseMath[] = [];
+            let e: ExerciseType = optionsIn[a];
+            for (let i = 0; i < e.quantity; i++) {
                 const constraints: NumConstraint[] = _extractConstraints(e);
                 const funct: (a: number, b: number) => number = funcMap[e.operations[0]].func;
                 const be: BinaryExpression = generateExpression(funct, constraints);
                 const em: ExerciseMath = new ExerciseMathImpl(be, new BinaryExpressionRender());
-                exercises.push(em);
+                exercise.push(em);
             }
+            exercises.push(exercise);
+            console.log('created ' + exercise.length + ' exercises');
         }
-
-        if (exercises === null || exercises.length === 0) {
+        if (exercises.length === 0) {
             reject('Unable to create Exercises: null or empty!');
         } else {
             resolve(exercises);
@@ -175,7 +174,7 @@ export function makeSet(options?: Options): Promise<ExerciseMath[]> {
     });
 }
 
-function _extractConstraints(e: Exercise): NumConstraint[] {
+function _extractConstraints(e: ExerciseType): NumConstraint[] {
     let ncs: NumConstraint[] = [];
     const { quantity, level, operands } = e;
     const ops = e.operands;
@@ -189,104 +188,105 @@ function _extractConstraints(e: Exercise): NumConstraint[] {
 
 
 /**
- * Default Options
+ * Default ExerciseType
  */
-export const defaultOptions: Options = {
-    exercises: [{
-        quantity: 12,
-        level: 1,
-        operations: ['add'],
-        operands: [
-            { range: rangeN20, greaterThanIndex: 1 },
-            { range: rangeN10 }
-        ]
-    }],
-    total: 12
-};
-
-export const addN50N10: Options = {
-    exercises: [{
-        quantity: 12,
-        level: 1,
-        operations: ['add'],
-        operands: [
-            { range: rangeN80N10, greaterThanIndex: 1 },
-            { range: rangeN10 }
-        ]
-    }],
-    total: 12
-};
-
-export const addN50N25Nof10: Options = {
-    exercises: [{
-        quantity: 12,
-        level: 1,
-        operations: ['add'],
-        operands: [
-            { range: rangeN50N10, greaterThanIndex: 1 },
-            { range: rangeN25N5 },
-            { multipleOf: 10 }
-        ]
-    }],
-    total: 12
-};
-
-export function addN50N19(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN50N10 },
-        { appliesToIndex: 1, range: rangeN20 }
-    ];
-    const be: BinaryExpression = generateExpression(add, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
-}
-
-export function subN99N10Nof10(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN99N10 },
-        { appliesToIndex: 1, range: rangeN10 },
-        { appliesToIndex: 2, multipleOf: 10 }
-    ];
-    const be: BinaryExpression = generateExpression(sub, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
-}
-
-export function subN50N10(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN50N10 },
-        { appliesToIndex: 1, range: rangeN10 }
+export const defaultAdd: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['add'],
+    operands: [
+        { range: rangeN20, greaterThanIndex: 1 },
+        { range: rangeN20 }
     ]
-    const be: BinaryExpression = generateExpression(sub, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
 }
 
-export function subN99N19(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN99N10 },
-        { appliesToIndex: 1, range: rangeN20 }
-    ];
-    const be: BinaryExpression = generateExpression(sub, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
-}
+/**
+ * More ExerciseTypes
+ */
+export const addN50N10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['add'],
+    operands: [
+        { range: rangeN80N10, greaterThanIndex: 1 },
+        { range: rangeN10 }
+    ]
+};
+export const addN50N25Nof10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['add'],
+    operands: [
+        { range: rangeN50N10, greaterThanIndex: 1 },
+        { range: rangeN25N5 },
+        { multipleOf: 10 }
+    ]
+};
+export const addN50N19: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['add'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN50N10 },
+        { range: rangeN20 }
+    ]
+};
 
-export function subN99N19Nof10(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN99N10 },
-        { appliesToIndex: 1, range: rangeN20 },
-        { appliesToIndex: 2, multipleOf: 10 }
-    ];
-    const be: BinaryExpression = generateExpression(sub, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
-}
+export const subN99N10Nof10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['sub'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN99N10 },
+        { range: rangeN10 },
+        { multipleOf: 10 }
+    ]
+};
+export const subN50N10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['sub'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN99N10 },
+        { range: rangeN10 }
+    ]
+};
+export const subN99N19: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['sub'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN99N10 },
+        { range: rangeN20 }
+    ]
+};
+export const subN99N19Nof10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['sub'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN99N10 },
+        { range: rangeN20 },
+        { multipleOf: 10 }
+    ]
+};
 
-export function multN10N10(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, greaterThanIndex: 1, range: rangeN10 },
-        { appliesToIndex: 1, range: rangeN10 }
-    ];
-    const be: BinaryExpression = generateExpression(mult, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
-}
+export const multN10N10: ExerciseType = {
+    quantity: 12,
+    level: 1,
+    operations: ['mult'],
+    operands: [
+        { greaterThanIndex: 1, range: rangeN10 },
+        { range: rangeN10 }
+    ]
+};
 
+
+/**
+ * 
+ * @deprecated
+ * 
+ */
 export function multN10Nof2(): ExerciseMath {
     return multN10ofX(2);
 }
@@ -327,20 +327,20 @@ export function multR100(): ExerciseMath {
     return new ExerciseMathImpl(be, new BinaryExpressionRender());
 }
 
-export function divR100(x?: number, shuffle?: boolean): ExerciseMath {
-    const ex: ExerciseMath = x ? multN10ofX(x) : multN10N10();
-    let x1 = ex.expression.term.x;
-    let x2 = ex.expression.term.y;
-    if (shuffle) {
-        const chance: number = Math.random();
-        if (chance >= .5) {
-            x1 = ex.expression.term.y;
-            x2 = ex.expression.term.x;
-        }
-    }
-    let expr1: BinaryExpression = { term: { x: x1, y: x2, operation: ':' }, value: ex.expression.value, eq: '=' };
-    return new ExerciseMathImpl(expr1, new BinaryExpressionRender());
-}
+// export function divR100(x?: number, shuffle?: boolean): ExerciseMath {
+//     const ex: ExerciseMath = x ? multN10ofX(x) : multN10N10();
+//     let x1 = ex.expression.term.x;
+//     let x2 = ex.expression.term.y;
+//     if (shuffle) {
+//         const chance: number = Math.random();
+//         if (chance >= .5) {
+//             x1 = ex.expression.term.y;
+//             x2 = ex.expression.term.x;
+//         }
+//     }
+//     let expr1: BinaryExpression = { term: { x: x1, y: x2, operation: ':' }, value: ex.expression.value, eq: '=' };
+//     return new ExerciseMathImpl(expr1, new BinaryExpressionRender());
+// }
 
 export function divN100(): ExerciseMath {
     const mult: ExerciseMath = multR100();
@@ -352,29 +352,15 @@ export function divN100(): ExerciseMath {
     return new ExerciseMathImpl(expr, new BinaryExpressionRender());
 }
 
-export function setOfMult(): Promise<ExerciseMath[]> {
-    return new Promise((resolve, reject) => {
-        const exercises: ExerciseMath[] = [];
-        if (exercises === null) {
-            reject('Unable to create Exercises!');
-        } else {
-            resolve(exercises);
-        }
-    });
-}
 
-export function setOf(): Promise<ExerciseMath[]> {
-    const exercises: ExerciseMath[] = [];
-    return new Promise((resolve, reject) => {
-        const exercises: ExerciseMath[] = [];
-        if (exercises === null) {
-            reject('Unable to create Exercises!');
-        } else {
-            resolve(exercises);
-        }
-    });
-}
-
+/**
+ * 
+ * @deprecated
+ * 
+ * @param xs 
+ * 
+ * 
+ */
 export function setOfMultN10(xs: number[]): ExerciseMath[] {
     let r = [];
     let ms = {};

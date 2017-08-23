@@ -90,3 +90,34 @@ function __generateNumber(to: number, from?: number): number {
     }
     return Math.ceil(Math.random() * to);
 }
+
+/**
+ * 
+ * Generate some Values with optinal step size
+ * 
+ * @param limit 
+ * @param step 
+ */
+function generateArrayValues(limit: number, step?: number): number[] {
+    let values = [];
+    const it = generatorFnc(1);
+    while (limit-- > 0) {
+        values.push(it.next().value);
+    }
+    return values;
+}
+
+/**
+ * 
+ * Generator Function
+ * 
+ * @param count 
+ * @param step 
+ */
+function* generatorFnc(count: number, step?: number): IterableIterator<number> {
+    const s = step ? step : 1;
+    while (true) {
+        yield count;
+        count = count + s;
+    }
+}
