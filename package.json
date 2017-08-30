@@ -15,7 +15,8 @@
     "pretest": "tsc -p .",
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
     "test": "NODE_ENV=test mocha --bail",
-    "cover": "NODE_ENV=test nyc npm test"
+    "cover": "NODE_ENV=test nyc npm test",
+    "prepublish": "tsc -d -p ."
   },
   "keywords": [
     "education",
