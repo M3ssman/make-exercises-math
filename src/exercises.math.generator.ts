@@ -1,6 +1,6 @@
 // import { MathBaseOption } from './math.base-option';
 import { NumConstraint } from './exercises.math';
-import { Term, Number, BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math';
+import { BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math';
 import {BinaryExpressionRender} from './exercises.math.renderer';
 
 
@@ -30,11 +30,7 @@ export function generateExpression(operation: (x: number, y: number) => number,
         }
     } while (all_again);
 
-    let nX: Number = { n: x };
-    let nY: Number = { n: y };
-    let nV: Number = { n: r };
-    let t: Term = { x: nX, y: nY, operation: operation.name };
-    let be: BinaryExpression = { term: t, value: nV, eq: '=' };
+    let be: BinaryExpression = { x, operation: operation.name, y, eq: '=' , value: r };
     return be;
 }
 

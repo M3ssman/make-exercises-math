@@ -1,4 +1,4 @@
-import { Number, BinaryExpression } from './exercises.math';
+import { BinaryExpression } from './exercises.math';
 
 /**
  * Basic Binary Functions
@@ -31,14 +31,14 @@ export interface Renderer {
 export class BinaryExpressionRender implements Renderer {
     toMaskedString(expression: BinaryExpression) {
         let mask = '';
-        for (let i = 0; i < expression.value.n.toString().length; i++) {
+        for (let i = 0; i < expression.value.toString().length; i++) {
             mask += '_';
         }
         // let fillY = (<Number>expression.term.y).n < 10 ? ' ' : '';
         // let fillR = (expression.value.n < 10) ? ' ' : '';
-        let x = (<Number>expression.term.x).n;
-        let y = (<Number>expression.term.y).n;
-        let ops = funcMap[expression.term.operation.toString()].label;
+        let x = expression.x;
+        let y = expression.y;
+        let ops = funcMap[expression.operation].label;
         return '' + x + ' ' + ops + ' ' + y + ' ' + expression.eq + ' ' + mask;
     }
 }
