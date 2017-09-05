@@ -14,8 +14,8 @@
   "scripts": {
     "pretest": "tsc -p .",
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
-    "test": "NODE_ENV=test mocha --bail",
-    "cover": "NODE_ENV=test nyc npm test",
+    "test": "NODE_ENV=test mocha --require ts-node/register",
+    "cover": "nyc --reporter=lcov --reporter=text npm test",
     "prepublish": "tsc -d -p ."
   },
   "keywords": [
@@ -34,25 +34,19 @@
   },
   "devDependencies": {
     "chai": "^4.1.0",
-    "istanbul": "^0.4.5",
     "mocha": "^3.4.2",
-    "nyc": "^10.1.2",
+    "nyc": "11.2.x",
     "ts-node": "^3.3.0"
   },
   "nyc": {
     "include": [
-      "src/*.ts"
+      "src/**"
+    ],
+    "exclude": [
+      "src/*.d.ts"
     ],
     "extension": [
       ".ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ],
-    "reporter": [
-      "json",
-      "html"
-    ],
-    "all": true
+    ]
   }
 }
