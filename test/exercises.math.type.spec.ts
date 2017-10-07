@@ -1,27 +1,13 @@
 import { assert, expect } from 'chai';
-import { ExerciseMath } from '../src/exercises.math';
-import { makeSet, addN50N25Nof10, subN99N19Nof10, multN10N10 , divN100} from '../src/exercises.math';
+import { ExerciseMath, ExerciseType } from '../src/exercises.math';
+import { makeSet, addN50N25Nof10, subN99N19Nof10, multN10N10 } from '../src/exercises.math';
 
 /**
- * Test Set Interface
+ * 
+ * Test given ExerciseTypes
+ * 
  */
-describe('Test Set with default Options', function () {
-    it('should generate 12 default Exercises that contain symbol "+"', function (done) {
-        const exercises = makeSet();
-        exercises.then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            for (let e = 0; e < exercises.length; e++) {
-                for (let f = 0; f < exercises[e].length; f++) {
-                    assert.equal(12, exercises[e].length);
-                    let ex: ExerciseMath = exercises[e][f];
-                    let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('+') > 1);
-                }
-            }
-        });
-        done();
-    });
-
+describe('ExerciseTypes', function () {
     it('should generate 12 Exercises from addN50N25Nof10 with result mult of 10', function (done) {
         const exercises = makeSet([addN50N25Nof10]);
         exercises.then((exercises: ExerciseMath[][]) => {
@@ -31,13 +17,19 @@ describe('Test Set with default Options', function () {
                     assert.equal(12, exercises[e].length);
                     let ex: ExerciseMath = exercises[e][f];
                     let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('+') > 1);
+                    let opOffset = renderOut.indexOf('+');
+                    assert.isTrue(opOffset > 0);
                     let exprValue = ex.expression.value;
                     assert.isTrue(exprValue % 10 === 0);
                 }
             }
+            done();
+        }).catch(err => {
+            if (console) {
+                console.log(err);
+            }
+            done(err);
         });
-        done();
     });
 
     it('should generate 12 Exercises from subN99N19Nof10 with result mult of 10', function (done) {
@@ -49,13 +41,18 @@ describe('Test Set with default Options', function () {
                     assert.equal(12, exercises[e].length);
                     let ex: ExerciseMath = exercises[e][f];
                     let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('-') > 1);
+                    assert.isTrue(renderOut.indexOf('-') > 0);
                     let exprValue = ex.expression.value;
                     assert.isTrue(exprValue % 10 === 0);
                 }
             }
+            done();
+        }).catch(err => {
+            if (console) {
+                console.log(err);
+            }
+            done(err);
         });
-        done();
     });
 
     it('should generate 12 Exercises from multN10N10', function (done) {
@@ -67,28 +64,31 @@ describe('Test Set with default Options', function () {
                     assert.equal(12, exercises[e].length);
                     let ex: ExerciseMath = exercises[e][f];
                     let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('*') > 1);
+                    assert.isTrue(renderOut.indexOf('*') > 0);
                 }
             }
-        });
-        done();
-    });
-
-    it('should generate 12 Exercises from divN100', function (done) {
-        const exercises = makeSet([divN100]);
-        exercises.then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            for (let e = 0; e < exercises.length; e++) {
-                for (let f = 0; f < exercises[e].length; f++) {
-                    assert.equal(12, exercises[e].length);
-                    let ex: ExerciseMath = exercises[e][f];
-                    let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf(':') > 1);
-                }
+            done();
+        }).catch(err => {
+            if (console) {
+                console.log(err);
             }
+            done(err);
         });
-        done();
     });
 
-    
+    // it('should generate 12 Exercises from divN100', function (done) {
+    //     const exercises = makeSet([divN100]);
+    //     exercises.then((exercises: ExerciseMath[][]) => {
+    //         assert.equal(1, exercises.length);
+    //         for (let e = 0; e < exercises.length; e++) {
+    //             for (let f = 0; f < exercises[e].length; f++) {
+    //                 assert.equal(12, exercises[e].length);
+    //                 let ex: ExerciseMath = exercises[e][f];
+    //                 let renderOut = ex.get()[0];
+    //                 assert.isTrue(renderOut.indexOf(':') > 1);
+    //             }
+    //         }
+    //     done();
+    //     });
+    // });
 });

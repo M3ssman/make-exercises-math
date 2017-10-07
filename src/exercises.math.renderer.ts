@@ -1,4 +1,4 @@
-import { BinaryExpression } from './exercises.math';
+import { Expression } from './exercises.math';
 
 /**
  * Basic Binary Functions
@@ -18,27 +18,34 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult }
 };
 
-
 /**
  * Renderer Declaration
  */
 export interface Renderer {
-    toMaskedString?(expression: BinaryExpression): string;
+    toMaskedString?(expression: Expression): string;
 }
+
 /**
  * Default Render Implementation
  */
-export class BinaryExpressionRender implements Renderer {
-    toMaskedString(expression: BinaryExpression) {
+export class ExpressionRender implements Renderer {
+    toMaskedString(expression: Expression) {
         let mask = '';
         for (let i = 0; i < expression.value.toString().length; i++) {
             mask += '_';
         }
-        // let fillY = (<Number>expression.term.y).n < 10 ? ' ' : '';
-        // let fillR = (expression.value.n < 10) ? ' ' : '';
-        let x = expression.x;
-        let y = expression.y;
-        let ops = funcMap[expression.operation].label;
-        return '' + x + ' ' + ops + ' ' + y + ' ' + expression.eq + ' ' + mask;
+
+        let ops = expression.operations.map(op => funcMap[op].label);
+        let xpr = '';
+        xpr += expression.operands[0];
+        for (let o = 0, r = 1; o < ops.length; o++ , r++) {
+            if (ops[o]) {
+                xpr += ops[o];
+            }
+            if (expression.operands[r]) {
+                xpr += expression.operands[r];
+            }
+        }
+        return '' + xpr + ' ' + expression.eq + ' ' + mask;
     }
 }

@@ -1,5 +1,5 @@
 import { generateExpression } from './exercises.math.generator';
-import { funcMap, add, sub, mult, Renderer, BinaryExpressionRender } from './exercises.math.renderer';
+import { funcMap, add, sub, mult, Renderer, ExpressionRender } from './exercises.math.renderer';
 
 /**
  * Numeric Bounds
@@ -23,25 +23,17 @@ export const rangeN100 = new NumBounds(100);
 
 /**
  * 
- * Unary and binary Constraints
+ * Numerical Constraints
  * 
  */
 export class NumConstraint {
-    appliesToIndex?: number;
     greaterThanIndex?: number;
     exactMatchOf?: number;
     range?: NumBounds;
     multipleOf?: number;
-}
-
-/**
- * Define a whole Set of Exercises with optional total Quantity
- * 
- * Defaults to a Set of Addition 12 Exercises
- *  
- */
-export interface Options {
-    exercises: ExerciseType[];
+    toString(): string {
+        return JSON.stringify(this);
+    }
 }
 
 /**
@@ -52,6 +44,7 @@ export interface ExerciseType {
     level: number;
     operations: ["add" | "sub" | "mult" | "div"];
     operands?: NumConstraint[];
+    result?: NumConstraint;
     resultMultipleOf?: number;
 }
 
@@ -61,34 +54,13 @@ export interface Range {
     greaterThanIndex?: number;
 }
 
-export interface BinaryExpression {
-    x: number;
-    operation : string;
-    y: number;
+export interface Expression {
+    operands: number[];
+    operations: string[];
     eq: string;
     value: number;
     toString(): string;
     toMaskedString?(): string;
-}
-export class BinaryExpressionImpl implements BinaryExpression {
-    x:number; y: number; value: number;
-    operation; eq;
-    expr: BinaryExpression;
-    constructor(expression: BinaryExpression, public renderer: Renderer) {
-        this.expr = expression;
-    }
-    toMaskedString(): string {
-        return this.renderer.toMaskedString(this);
-    }
-    toString(): string {
-        return '(' + this.x + ' ' + this.operation + ' ' + this.y +') => ' + this.value;
-    }
-}
-
-/**
- * Set Option Declaration
- */
-export interface ExpressionSetOption {
 }
 
 /**
@@ -96,12 +68,12 @@ export interface ExpressionSetOption {
  */
 export interface ExerciseMath {
     rendered: string[];
-    expression: BinaryExpression;
+    expression: Expression;
     get(): string[];
 }
 export class ExerciseMathImpl implements ExerciseMath {
     rendered: string[] = [];
-    constructor(public expression: BinaryExpression, public renderer: Renderer) { }
+    constructor(public expression: Expression, public renderer: Renderer) { }
     get() {
         if (this.rendered.length === 0) {
             this.rendered.push(this.renderer.toMaskedString(this.expression));
@@ -110,11 +82,9 @@ export class ExerciseMathImpl implements ExerciseMath {
     }
 }
 
-interface ExerciseMakeFunc {
-    (): ExerciseMath;
-}
-
 /**
+ * 
+ * Create Expression Level 1
  * 
  * @param exerciseTypes 
  */
@@ -123,19 +93,23 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
         const exercises: ExerciseMath[][] = [];
         const optionsIn = exerciseTypes ? exerciseTypes : [defaultAdd];
         let numberOfSets: number = optionsIn.length;
+
         for (let a = 0; a < numberOfSets; a++) {
             const exercise: ExerciseMath[] = [];
             let e: ExerciseType = optionsIn[a];
+
             for (let i = 0; i < e.quantity; i++) {
-                const constraints: NumConstraint[] = _extractConstraints(e);
-                let funct: (a: number, b: number) => number = funcMap[e.operations[0]].func;
-                let be: BinaryExpression = generateExpression(funct, constraints);
-                if (e.operations[0] === 'div') {
-                    funct = funcMap['mult'].func;
-                    be = generateExpression(funct, constraints);
-                    be = _swapTo(be,'div');
-                }
-                const em: ExerciseMath = new ExerciseMathImpl(be, new BinaryExpressionRender());
+
+                // get constraints for operands and result
+                const constraints: NumConstraint[] = e.operands;
+                const resultConstraint: NumConstraint = e.result;
+
+                // get operations
+                let functs: ((a: number, b: number) => number)[] = [];
+                e.operations.map(op => functs.push(funcMap[op].func));
+
+                let exp: Expression = generateExpression(functs, constraints, resultConstraint);
+                const em: ExerciseMath = new ExerciseMathImpl(exp, new ExpressionRender());
                 exercise.push(em);
             }
             exercises.push(exercise);
@@ -146,29 +120,6 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
             resolve(exercises);
         }
     });
-}
-
-function _swapTo(exp: BinaryExpression, op: string): BinaryExpression {
-    const next: BinaryExpression = {
-        x: exp.value,
-        operation: op,
-        y: exp.y,
-        eq: '=',
-        value: exp.x
-    };
-    return next;
-}
-
-function _extractConstraints(e: ExerciseType): NumConstraint[] {
-    let ncs: NumConstraint[] = [];
-    const { quantity, level, operands } = e;
-    const ops = e.operands;
-    for (let i = 0; i < ops.length; i++) {
-        let nc: NumConstraint = ops[i];
-        nc.appliesToIndex = i;
-        ncs.push(nc);
-    }
-    return ncs;
 }
 
 /**
@@ -202,9 +153,9 @@ export const addN50N25Nof10: ExerciseType = {
     operations: ['add'],
     operands: [
         { range: rangeN50N10, greaterThanIndex: 1 },
-        { range: rangeN25N5 },
-        { multipleOf: 10 }
-    ]
+        { range: rangeN25N5 }
+    ],
+    result: { multipleOf: 10 }
 };
 export const addN50N19: ExerciseType = {
     quantity: 12,
@@ -222,9 +173,9 @@ export const subN99N10Nof10: ExerciseType = {
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN10 },
-        { multipleOf: 10 }
-    ]
+        { range: rangeN10 }
+    ],
+    result: { multipleOf: 10 }
 };
 export const subN50N10: ExerciseType = {
     quantity: 12,
@@ -250,9 +201,9 @@ export const subN99N19Nof10: ExerciseType = {
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN20 },
-        { multipleOf: 10 }
-    ]
+        { range: rangeN20 }
+    ],
+    result: { multipleOf: 10 }
 };
 
 export const multN10N10: ExerciseType = {
@@ -265,13 +216,29 @@ export const multN10N10: ExerciseType = {
     ]
 };
 
-export const divN100: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['div'],
+// export const divN100: ExerciseType = {
+//     quantity: 12,
+//     level: 1,
+//     operations: ['div'],
+//     operands: [
+//         { greaterThanIndex: 1, range: rangeN10 },
+//         { range: rangeN10 }
+//     ]
+// };
+
+
+export const add_add_: ExerciseType = {
+    quantity: 2, level: 1,
+    operations: ['add', 'add']
+};
+
+export const addN50N25subN20: ExerciseType = {
+    quantity: 2, level: 1,
+    operations: ['add', 'sub'],
     operands: [
-        { greaterThanIndex: 1, range: rangeN10 },
-        { range: rangeN10 }
+        { range: { min: 20, max: 50 } },
+        { range: { min: 10, max: 25 } },
+        { range: { max: 20 } }
     ]
 };
 
@@ -294,30 +261,30 @@ export function multN10Nof10(): ExerciseMath {
 
 export function multN10ofX(x: number): ExerciseMath {
     const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, exactMatchOf: x },
-        { appliesToIndex: 1, range: rangeN10 }
+        { exactMatchOf: x },
+        { range: rangeN10 }
     ];
-    const be: BinaryExpression = generateExpression(mult, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
+    const e: Expression = generateExpression([mult], constraints, null);
+    return new ExerciseMathImpl(e, new ExpressionRender());
 }
 
 function multN10ofXofY(x: number, y: number): ExerciseMath {
     const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, exactMatchOf: x },
-        { appliesToIndex: 1, exactMatchOf: y }
+        { exactMatchOf: x },
+        { exactMatchOf: y }
     ];
-    const be: BinaryExpression = generateExpression(mult, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
+    const e: Expression = generateExpression([mult], constraints, null);
+    return new ExerciseMathImpl(e, new ExpressionRender());
 }
 
 export function multR100(): ExerciseMath {
     const constraints: NumConstraint[] = [
-        { appliesToIndex: 0, range: rangeN20 },
-        { appliesToIndex: 1, range: rangeN20 },
-        { appliesToIndex: 2, range: rangeN100 }
+        { range: rangeN20 },
+        { range: rangeN20 },
+        { range: rangeN100 }
     ];
-    const be: BinaryExpression = generateExpression(mult, constraints);
-    return new ExerciseMathImpl(be, new BinaryExpressionRender());
+    const e: Expression = generateExpression([mult], constraints, null);
+    return new ExerciseMathImpl(e, new ExpressionRender());
 }
 
 /**

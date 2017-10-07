@@ -1,45 +1,88 @@
 // import { MathBaseOption } from './math.base-option';
 import { NumConstraint } from './exercises.math';
-import { BinaryExpression, BinaryExpressionImpl, ExerciseMath, ExerciseMathImpl } from './exercises.math';
-import {BinaryExpressionRender} from './exercises.math.renderer';
+import { Expression, ExerciseMath, ExerciseMathImpl } from './exercises.math';
+import { ExpressionRender } from './exercises.math.renderer';
 
+/**
+ * 
+ * Generate Expression using provided Constraints with given Operations
+ * 
+ * @param operation 
+ * @param operandsConstraints 
+ */
+export function generateExpression(
+    operations: ((x: number, y: number) => number)[],
+    operandsConstraints: NumConstraint[],
+    resultConstraints: NumConstraint): Expression {
 
-// export function generate(operation: (x: number, y: number) => number, constraints: NumConstraint[]): ExerciseMath {
-    // const em : ExerciseMath = new ExerciseMathImpl(exp);
-    // return _generateExpression(operation, constraints);
-// }
-
-export function generateExpression(operation: (x: number, y: number) => number,
-    constraints: NumConstraint[]): BinaryExpression {
-
-    let x = 0, y = 0, r = 0;
+    let x = 0, y = 0, r = 0, operands = [], expression: Expression = {
+        operands: [], operations: [], eq: '=', value: 0
+    };
+    let xConstr, yConstr;
     let nr_ok = false, r_ok = true, all_again = true;
 
+    let n = 1;
     do {
-        x = _getNumber(constraints.filter(c => c.appliesToIndex === 0)[0]);
-        y = _getNumber(constraints.filter(c => c.appliesToIndex === 1)[0]);
-        nr_ok = __holdXYConstraints(x, y, constraints);
-        r = operation(x, y);
-        const r_const = constraints.filter(c => c.appliesToIndex === 2)[0];
+
+        // get first two operand constraints, if any, to compute f(x,y)
+        if (operandsConstraints !== undefined && operandsConstraints[0]) {
+            xConstr = operandsConstraints[0];
+        }
+        x = _getNumber(xConstr);
+        if (operandsConstraints !== undefined && operandsConstraints[1]) {
+            yConstr = operandsConstraints[1];
+        }
+        y = _getNumber(yConstr);
+
+        nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
+        r = (operations[0])(x, y);
+
+        // build expression
+        expression.operands.push(x, y);
+        expression.operations.push(operations[0].name);
+
+        // with more than 1 operation do
+        if (operations.length > 1) {
+            for (let a = 2, o = 1; o < operations.length; o++ , a++) {
+                if (operandsConstraints !== undefined && operandsConstraints[a]) {
+                    yConstr = operandsConstraints[a];
+                }
+                y = _getNumber(yConstr);
+                expression.operands.push(y);
+
+                nr_ok = __holdXYoperandsConstraints(r, y, undefined, yConstr);
+                r = (operations[o])(r, y);
+                expression.operations.push(operations[o].name);
+            }
+        }
+        // final result
+        expression.value = r;
+
+        // check result constraint
+        const r_const: NumConstraint = resultConstraints;
         if (r_const) {
             r_ok = __holdResultConstraints(r, r_const)
         }
-
+        // chek operandsConstraints
         if (nr_ok && r_ok) {
             all_again = false;
+        } else {
+            expression.operands = [];
+            expression.operations = [];
+            n++;
         }
-    } while (all_again);
 
-    let be: BinaryExpression = { x, operation: operation.name, y, eq: '=' , value: r };
-    return be;
+    } while (all_again);
+    // if (console) {
+    //     console.log('needed ' + n + ' tries to calculate ' + JSON.stringify(expression));
+    // }
+    return expression;
 }
 
-function __holdXYConstraints(x: number, y: number, constraints: NumConstraint[]): boolean {
-    const xConstr = constraints.filter(c => c.appliesToIndex === 0)[0];
-    const yConstr = constraints.filter(c => c.appliesToIndex === 1)[0];
-    if (xConstr.greaterThanIndex) {
+function __holdXYoperandsConstraints(x: number, y: number, xConstr: NumConstraint, yConstr: NumConstraint): boolean {
+    if (xConstr && xConstr.greaterThanIndex) {
         return x > y;
-    } else if (yConstr.greaterThanIndex) {
+    } else if (yConstr && yConstr.greaterThanIndex) {
         return y > x;
     }
     return true;
@@ -58,8 +101,13 @@ function __holdResultConstraints(r: number, constraint: NumConstraint): boolean 
     return true;
 }
 
-function _getNumber(constraint: NumConstraint): number {
+function _getNumber(constraint?: NumConstraint): number {
     let result = 0;
+
+    // sanitize
+    if (constraint === undefined) {
+        return __generateNumber(100, 1);
+    }
 
     if (constraint.range) {
         const range = constraint.range;
@@ -69,7 +117,6 @@ function _getNumber(constraint: NumConstraint): number {
     } else if (constraint.exactMatchOf) {
         return constraint.exactMatchOf;
     }
-
     return result;
 }
 
