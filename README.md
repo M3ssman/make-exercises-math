@@ -6,7 +6,7 @@ Supports simple Addition, Subtraction and Multiplication Exercises with two Oper
 For each exercise, you declare lower and upper Bounds of Operands both, and the Result, accordingly. 
 The Lib provides a pre-defined Set of basic numerical Ranges. Each concrete ExerciseType is labelled with a prefix that determines it's Operation, it's Constraint on the Operands and some optional Constraints for the Result
 
-Currently, it supports the following ExerciseTypes:
+Currently, it supports the following default ExerciseTypes:
 * addN50N10
 * addN50N19
 * addN50N25Nof10
@@ -19,6 +19,8 @@ Currently, it supports the following ExerciseTypes:
 The "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 The "subN99N19Nof10" means: "give me Exercises of Subtraction, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". Under the hood, each simple Subtraction Exercise assures a positive Difference, since the Minuend is garanteed to be larger than what gets subtracted. Per default, it creates a Set of 12 Exercises for each requested ExerciseType.
 
+## Example Usage
+
 For a very basic example head over to openshiftapps and request [http://make-exercises-math-app-make-exercises-math-app.a3c1.starter-us-west-1.openshiftapps.com/make](http://make-exercises-math-app-make-exercises-math-app.a3c1.starter-us-west-1.openshiftapps.com/make)  
 
 
@@ -30,13 +32,21 @@ ExerciseTypes are separated by comma and must be contained in the listed Exercis
 The page has a label on top. To change it's text, add the label parameter in your Query like this:
 [http://make-exercises-math-app-make-exercises-math-app.a3c1.starter-us-west-1.openshiftapps.com/make?types=multN10N10,divN100&label=my%20custom%20label](http://make-exercises-math-app-make-exercises-math-app.a3c1.starter-us-west-1.openshiftapps.com/make?types=multN10N10,divN100&label=my%20custom%20label)
 
-## Local Installation
+## Local Installation in your Project
 After forking or cloning the Repository, switch to your local Repository root-Folder and run
 ```
-npm install
+npm i make-exercise-math --save
 ```
 
-## Run Tests
+## Tests and Coverage (via nyc)
 ```
 npm test
 ```
+
+```
+npm run coverage
+```
+Generated Reports will be located inside "coverage" Folder.
+
+
+
