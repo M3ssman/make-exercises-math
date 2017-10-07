@@ -217,12 +217,12 @@ export const multN10N10: ExerciseType = {
 };
 
 export const add_add_: ExerciseType = {
-    quantity: 2, level: 1,
+    quantity: 12, level: 1,
     operations: ['add', 'add']
 };
 
 export const addN50N25subN20: ExerciseType = {
-    quantity: 2, level: 1,
+    quantity: 12, level: 1,
     operations: ['add', 'sub'],
     operands: [
         { range: rangeN50N10 },
