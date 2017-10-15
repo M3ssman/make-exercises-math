@@ -21,7 +21,7 @@ The "addN50N10" means: "give me Exercises of Addition, where the first Summand i
 
 The "subN99N19Nof10" means: "give me Exercises of Subtraction, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". Under the hood, each simple Subtraction Exercise assures a positive Difference, since the Minuend is garanteed to be larger than what gets subtracted. Per default, it creates a Set of 12 Exercises for each requested ExerciseType.
 
-The "addN50N25subN20" contains 2 operations and means therefore: "first add 2 Numbers and then subract from this intermediate Result the third Number". This way, the "add_add_" just sums 3 Numbers from fallback Range somewhere between 0-100.
+The "addN50N25subN20" contains 2 operations and means therefore: "first add 2 Numbers and then subract from this intermediate Result the third Number". This way, the "add_add_" just sums 3 Numbers. To reduce difficulty, the first Summand is within Range N100, the 2nd between 5-25 and the last one somewhere between 0-20.
 
 ## Example Usage
 

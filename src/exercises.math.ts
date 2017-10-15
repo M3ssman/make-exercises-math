@@ -218,7 +218,12 @@ export const multN10N10: ExerciseType = {
 
 export const add_add_: ExerciseType = {
     quantity: 12, level: 1,
-    operations: ['add', 'add']
+    operations: ['add', 'add'],
+    operands: [
+        { range: rangeN100 },
+        { range: rangeN50N10 },
+        { range: rangeN25N5 }
+    ]
 };
 
 export const addN50N25subN20: ExerciseType = {
