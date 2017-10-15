@@ -48,12 +48,6 @@ export interface ExerciseType {
     resultMultipleOf?: number;
 }
 
-export interface Range {
-    from: number;
-    to: number;
-    greaterThanIndex?: number;
-}
-
 export interface Expression {
     operands: number[];
     operations: string[];
