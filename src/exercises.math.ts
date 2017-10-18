@@ -1,4 +1,4 @@
-import { generateExpression } from './exercises.math.generator';
+import { generateExpression, generateDivisionWithRest } from './exercises.math.generator';
 import { funcMap, add, sub, mult, Renderer, ExpressionRender } from './exercises.math.renderer';
 
 /**
@@ -40,9 +40,9 @@ export class NumConstraint {
  * Defines a single Exercise of Addition, etc.
  */
 export interface ExerciseType {
-    quantity: number;
-    level: number;
     operations: ["add" | "sub" | "mult" | "div"];
+    quantity?: number;
+    level?: number;
     operands?: NumConstraint[];
     result?: NumConstraint;
     resultMultipleOf?: number;
@@ -52,7 +52,7 @@ export interface Expression {
     operands: number[];
     operations: string[];
     eq: string;
-    value: number;
+    value: number | number[];
     toString(): string;
     toMaskedString?(): string;
 }
@@ -100,13 +100,21 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
 
                 // get operations
                 let functs: ((a: number, b: number) => number)[] = [];
-                e.operations.map(op => functs.push(funcMap[op].func));
-
+                // all but div
+                e.operations.filter(op => !(op === 'div')).map(op => functs.push(funcMap[op].func));
                 let exp: Expression = generateExpression(functs, constraints, resultConstraint);
                 const em: ExerciseMath = new ExerciseMathImpl(exp, new ExpressionRender());
                 exercise.push(em);
             }
             exercises.push(exercise);
+
+            // handle divisionWithRest
+            if (e.operations[0] === 'div') {
+                const divExprs: Expression[] = genDivWithRest(e.operands);
+                for (let j = 0; j < divExprs.length; j++) {
+                    exercise.push(new ExerciseMathImpl(divExprs[j], new ExpressionRender()));
+                }
+            }
         }
         if (exercises.length === 0) {
             reject('Unable to create Exercises: null or empty!');
@@ -230,6 +238,10 @@ export const addN50N25subN20: ExerciseType = {
     ]
 };
 
+export const divN100WithRest: ExerciseType = {
+    operations:['div']
+};
+
 /**
  * 
  * @deprecated
@@ -275,55 +287,17 @@ export function multR100(): ExerciseMath {
     return new ExerciseMathImpl(e, new ExpressionRender());
 }
 
-/**
- * 
- * @deprecated
- * 
- * @param xs 
- * 
- * 
- */
-export function setOfMultN10(xs: number[]): ExerciseMath[] {
-    let r = [];
-    let ms = {};
-    let ns = [];
-    xs.forEach(x => {
-        ms[x] = generateArrayValues(10);
-    });
-    const mks = Object.keys(ms);
-    mks.map(x => {
-        ms[x].map(y => r.push(multN10ofXofY(parseInt(x), y)));
-    });
-    return r;
-}
 
 /**
- * 
- * Generate some Values with optinal step size
- * 
- * @param limit 
- * @param step 
+ * Generate Division Exercises with optional Rest
  */
-function generateArrayValues(limit: number, step?: number): number[] {
-    let values = [];
-    const it = generatorFnc(1);
-    while (limit-- > 0) {
-        values.push(it.next().value);
+function genDivWithRest(constraints?: NumConstraint[], count?: number): Expression[] {
+    const constrs: NumConstraint[] = constraints || [{ range: { max: 100, min:10 } }, { range: { max: 12, min: 2 } }];
+    const divIterator = generateDivisionWithRest(constrs);
+    const max = count || 12;
+    const exprs = [];
+    for (let i = 0; i < max; i++) {
+        exprs.push(divIterator.next().value);
     }
-    return values;
-}
-
-/**
- * 
- * Generator Function
- * 
- * @param count 
- * @param step 
- */
-function* generatorFnc(count: number, step?: number): IterableIterator<number> {
-    const s = step ? step : 1;
-    while (true) {
-        yield count;
-        count = count + s;
-    }
+    return exprs;
 }

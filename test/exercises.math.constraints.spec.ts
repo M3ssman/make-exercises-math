@@ -21,7 +21,7 @@ describe('Constraints', function () {
             const x = (<Expression>ex.expression).operands[0];
             const y = (<Expression>ex.expression).operands[1];
             const z = (<Expression>ex.expression).operands[2];
-            const r = ex.expression.value;
+            const r = <number>ex.expression.value;
             assert.isTrue(25 <= x && x <= 50, 'expect 25 <= x <= 50, but x was ' + x);
             assert.equal(y, 24, 'expect y = 24, but y was: ' + y);
             assert.isTrue(z <= 18, 'expect z <= 18, but z was ' + z);

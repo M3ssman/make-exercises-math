@@ -1,6 +1,6 @@
 import { assert, expect } from 'chai';
 import { ExerciseMath, ExerciseType } from '../src/exercises.math';
-import { makeSet, addN50N25Nof10, subN99N19Nof10, multN10N10 } from '../src/exercises.math';
+import { makeSet, addN50N25Nof10, subN99N19Nof10, multN10N10 , divN100WithRest} from '../src/exercises.math';
 
 /**
  * 
@@ -20,7 +20,7 @@ describe('ExerciseTypes', function () {
                     let opOffset = renderOut.indexOf('+');
                     assert.isTrue(opOffset > 0);
                     let exprValue = ex.expression.value;
-                    assert.isTrue(exprValue % 10 === 0);
+                    assert.isTrue(<number>exprValue % 10 === 0);
                 }
             }
             done();
@@ -42,7 +42,7 @@ describe('ExerciseTypes', function () {
                     let ex: ExerciseMath = exercises[e][f];
                     let renderOut = ex.get()[0];
                     assert.isTrue(renderOut.indexOf('-') > 0);
-                    let exprValue = ex.expression.value;
+                    let exprValue = <number>ex.expression.value;
                     assert.isTrue(exprValue % 10 === 0);
                 }
             }
@@ -76,19 +76,19 @@ describe('ExerciseTypes', function () {
         });
     });
 
-    // it('should generate 12 Exercises from divN100', function (done) {
-    //     const exercises = makeSet([divN100]);
-    //     exercises.then((exercises: ExerciseMath[][]) => {
-    //         assert.equal(1, exercises.length);
-    //         for (let e = 0; e < exercises.length; e++) {
-    //             for (let f = 0; f < exercises[e].length; f++) {
-    //                 assert.equal(12, exercises[e].length);
-    //                 let ex: ExerciseMath = exercises[e][f];
-    //                 let renderOut = ex.get()[0];
-    //                 assert.isTrue(renderOut.indexOf(':') > 1);
-    //             }
-    //         }
-    //     done();
-    //     });
-    // });
+    it('should generate 12 Division Exercises', function (done) {
+        const exercises = makeSet([divN100WithRest]);
+        exercises.then((exercises: ExerciseMath[][]) => {
+            assert.equal(1, exercises.length);
+            for (let e = 0; e < exercises.length; e++) {
+                for (let f = 0; f < exercises[e].length; f++) {
+                    assert.equal(12, exercises[e].length);
+                    let ex: ExerciseMath = exercises[e][f];
+                    let renderOut = ex.get()[0];
+                    assert.isTrue(renderOut.indexOf(':') > 1);
+                }
+            }
+        done();
+        });
+    });
 });

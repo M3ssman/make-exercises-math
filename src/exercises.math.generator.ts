@@ -136,31 +136,25 @@ function __generateNumber(to: number, from?: number): number {
 
 /**
  * 
- * Generate some Values with optinal step size
+ * Generator Function for Division with optional Rest
  * 
- * @param limit 
- * @param step 
+ * @param constraints 
  */
-function generateArrayValues(limit: number, step?: number): number[] {
-    let values = [];
-    const it = generatorFnc(1);
-    while (limit-- > 0) {
-        values.push(it.next().value);
-    }
-    return values;
-}
-
-/**
- * 
- * Generator Function
- * 
- * @param count 
- * @param step 
- */
-function* generatorFnc(count: number, step?: number): IterableIterator<number> {
-    const s = step ? step : 1;
+export function* generateDivisionWithRest(constraints?: NumConstraint[]): IterableIterator<Expression> {
+    // generator loop
     while (true) {
-        yield count;
-        count = count + s;
+        const constrDividend = constraints[0];
+        const constrDivisor = constraints[1];
+        const dividend = __generateNumber(constrDividend.range.max, constrDividend.range.min);
+        const divisor = __generateNumber(constrDivisor.range.max, constrDivisor.range.min);
+        const divModulo = dividend % divisor;
+        const val = (dividend - divModulo) / divisor;
+        const vals = [val];
+        if (divModulo !== 0) {
+            vals.push(divModulo);
+        }
+
+        // yield expression
+        yield { operands: [dividend, divisor], operations: ['div'], eq: '=', value: vals };
     }
 }
