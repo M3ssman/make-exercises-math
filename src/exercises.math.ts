@@ -45,7 +45,6 @@ export interface ExerciseType {
     level?: number;
     operands?: NumConstraint[];
     result?: NumConstraint;
-    resultMultipleOf?: number;
 }
 
 export interface Expression {
