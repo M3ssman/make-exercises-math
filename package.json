@@ -15,7 +15,7 @@
     "pretest": "tsc -p .",
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
     "test": "NODE_ENV=test mocha --require ts-node/register",
-    "cover": "nyc --reporter=lcov --reporter=text npm test",
+    "coverage": "nyc --reporter=lcov --reporter=text npm test",
     "prepublish": "tsc -d -p ."
   },
   "keywords": [
