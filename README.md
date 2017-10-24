@@ -6,6 +6,72 @@ Supports simple Addition, Subtraction and Multiplication Exercises with two Oper
 For each exercise, you declare lower and upper Bounds of Operands both, and the Result, accordingly. 
 The Lib provides a pre-defined Set of basic numerical Ranges. Each concrete ExerciseType is labelled with a prefix that determines it's Operation, it's Constraint on the Operands and some optional Constraints for the Result
 
+## Exercise Types
+
+The central API is a method called "makeSet" from the Library. It expecteds an Array of Exercise Types as Input and returns a Promise Set of Exercise Expressions with default rendering Options that mark each digit of the Result.
+
+### Definition of Exercise Types
+
+The Exercise Options can be though of regular JSON with the following mandatory Properties:
+* ```level```: number  
+  Level of Exercise Type, currently set to "1".
+* ```quantity```: number  
+  Amount of Exercises, defaults to 12.
+* ```operations```: string[]  
+  String Representation of a basic Exercise , exact one of ```sum|sub|mult|div```.
+* ```operands```: NumericalConstraint[]  
+  Array of Numerical Constraints for Operands.
+* ```result```: NumericalConstraint  
+  Numerical Constraints that must hold for the Result. 
+
+### Numerical Constraints
+
+Numerical Constraints define some Properties for Operands and the final Result.
+* ```range```:number  
+  Define Numerical Bounds for a Number, with a ```max```:number and an optional ```min```:number Value.
+* ```greaterThanIndex```:number    
+  Define a Releation between Operands in the given Array
+* ```exactMatchOf```:number   
+  Define that Operand must match exact the given Number, usefull for Multiplications.
+* ```multipleOf```:number  
+  Restrict possible Values to be a multiple of given Number. Especially usefull when it is required, that Results shall be even or alike.
+
+### Examples
+* A Basic Example (in JSON) how to define a Set of 3 Exercise Types that define ```add```, ```sub``` and ```mult```, could be done this way:  
+  ```
+  {
+    "exercises":[
+      { "quantity":12, 
+        "level":1, 
+        "operations":["add"],
+        "operands":[
+          {"range":{"min":10,"max":200}},
+          {"range":{"max":100}}
+        ]
+      },
+      { "quantity":12, 
+        "level":1, 
+        "operations":["sub"],
+        "operands":[
+          {"range":{"min":100,"max":200}},
+          {"range":{"max":100}}
+        ]
+      },
+      { "quantity":10, 
+        "level":1, 
+        "operations":["mult"],
+        "operands":[
+          {"range":{"min":2,"max":20}},
+          {"range":{"max":15}}
+        ]
+      }
+    ]
+  }
+  ```  
+   Please note, that the important Part is the Definition of proper numerical bounds for each Operand. 
+
+
+### Predefined Exercise Types
 Currently, it supports the following ExerciseTypes:
 * addN50N10
 * addN50N19
@@ -18,7 +84,7 @@ Currently, it supports the following ExerciseTypes:
 * addN50N25subN20
 * divN100WithRest
 
-The "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
+The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
 The "subN99N19Nof10" means: "give me Exercises of Subtraction, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". Under the hood, each simple Subtraction Exercise assures a positive Difference, since the Minuend is garanteed to be larger than what gets subtracted. Per default, it creates a Set of 12 Exercises for each requested ExerciseType.
 
