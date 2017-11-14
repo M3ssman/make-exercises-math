@@ -1,7 +1,6 @@
 // import { MathBaseOption } from './math.base-option';
 import { NumConstraint } from './exercises.math';
 import { Expression, ExerciseMath, ExerciseMathImpl } from './exercises.math';
-import { ExpressionRender } from './exercises.math.renderer';
 
 /**
  * 

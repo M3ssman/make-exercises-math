@@ -28,7 +28,7 @@ export interface Renderer {
 /**
  * Default Render Implementation
  */
-export class ExpressionRender implements Renderer {
+export class SimpleExpressionResultRender implements Renderer {
     toMaskedString(expression: Expression) {
         let mask = '';
         if (typeof expression.value === 'number') {
