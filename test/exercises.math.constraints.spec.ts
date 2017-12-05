@@ -1,5 +1,4 @@
 import { assert, expect } from 'chai';
-import { eventually } from 'chai-as-promised';
 import { ExerciseMath, ExerciseType, Expression } from '../src/exercises.math';
 import { makeSet } from '../src/exercises.math';
 
