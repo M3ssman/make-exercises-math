@@ -23,29 +23,30 @@ export const funcMap: { [key: string]: OpEntry } = {
  */
 export interface Renderer {
     toMaskedString?(expression: Expression): string;
+    toRenderedParts?(expression: Expression): string[];
 }
 
 /**
  * Default Render Implementation
  */
-export class SimpleExpressionResultRender implements Renderer {
-    toMaskedString(expression: Expression) {
+export class SimpleExpressionResultRenderer implements Renderer {
+    toMaskedString(expression: Expression): string {
         let mask = '';
         if (typeof expression.value === 'number') {
             for (let i = 0; i < expression.value.toString().length; i++) {
                 mask += '_';
             }
 
-        // handle rendering of division with optional Rest part
-        } else if(typeof expression.value === 'object' && expression.operations[0] === 'div') {
-            if(expression.value.length !== undefined) {
+            // handle rendering of division with optional Rest part
+        } else if (typeof expression.value === 'object' && expression.operations[0] === 'div') {
+            if (expression.value.length !== undefined) {
                 const q = expression.value[0];
                 for (let i = 0; i < q.toString().length; i++) {
                     mask += '_';
                 }
-                if(expression.value.length == 2) {
+                if (expression.value.length == 2) {
                     const r = expression.value[1];
-                    mask +=' R ';
+                    mask += ' R ';
                     for (let i = 0; i < r.toString().length; i++) {
                         mask += '_';
                     }
@@ -66,4 +67,113 @@ export class SimpleExpressionResultRender implements Renderer {
         }
         return '' + xpr + ' ' + expression.eq + ' ' + mask;
     }
+}
+
+/**
+ * 
+ * Advanced Rendering of Addition with Carry
+ * 
+ */
+export class AdditionWithCarryResultRenderer implements Renderer {
+    toRenderedParts(expression: Expression): string[] {
+        let result = [];
+        if (expression.operands) {
+            result = [].concat(expression.operands);
+            result.push(calculateCarry(expression));
+        }
+        // push value at last
+        if (typeof expression.value === 'number') {
+            result.push(expression.value);
+        }
+        return result;
+    }
+}
+
+function calculateCarry(expression: Expression): string {
+    let digit_tab = [];
+    // decompose integers
+    for (let i = 0; i < expression.operands.length; i++) {
+        if (Number.isInteger(expression.operands[i])) {
+            const decomposition = _decompose_digit(expression.operands[i]);
+            const rev = decomposition.reverse();
+            digit_tab[i] = rev;
+        }
+    }
+
+    // normalize carry Tab
+    const norm_tab = _normalize_digit_tab(digit_tab);
+
+    // invert tab
+    const inv_tab = _invert(norm_tab);
+
+    // calculate carry
+    const carry = _calculate_carry(inv_tab);
+
+    return carry.replace(/0/g,' ');
+}
+
+function _decompose_digit(z: number): number[] {
+    let a = z.toString();
+    let s = a.length;
+    const result: number[] = [];
+    for (let i = 0; i < s; i++) {
+        result[i] = Number.parseInt(a[i]);
+    }
+
+    return result;
+}
+
+function _normalize_digit_tab(dt: number[][]): number[][] {
+    // sort by number with max figures
+    const o = dt.sort((a: number[], b: number[]) => b.length - a.length);
+    // get max
+    const m = o[0].length;
+    // normalize
+    const n: number[][] = o.map(v => __normalize(v, m));
+    return n;
+}
+
+function __normalize(v: number[], m: number) {
+    const d = m - v.length;
+    if (d > 0) {
+        const n = v.concat(new Array(d));
+        return n.fill(0, v.length);
+    }
+    else {
+        return v;
+    }
+}
+
+function _invert(ns: number[][]): number[][] {
+    const is = [];
+    const dimR = ns.length;
+    const dimC = ns[0].length;
+    for (let c = 0; c < dimC; c++) {
+        let i = [];
+        for (let r = 0; r < dimR; r++) {
+            i.push(ns[r][c]);
+        }
+        is.push(i);
+    }
+    return is;
+}
+
+function _calculate_carry(cs: number[][]): string {
+    let s = '';
+    let c = 0;
+    for (let i = 0; i < cs.length; i++) {
+        let v = cs[i].reduce((p,c) => p + c);
+        v += c;
+        if(v >= 10 ) {
+            c = Math.floor(v / 10);
+            s = c + s;
+            if( i === 0) {
+                s = s+ '0';
+                continue;
+            }
+        } else {
+            s = '0' + s;
+        }
+    }
+    return s;
 }

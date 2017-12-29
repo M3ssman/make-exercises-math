@@ -1,5 +1,9 @@
 import { generateExpression, generateDivisionWithRest } from './exercises.math.generator';
-import { funcMap, add, sub, mult, Renderer, SimpleExpressionResultRender } from './exercises.math.renderer';
+import { funcMap, add, sub, mult, 
+    Renderer, 
+    SimpleExpressionResultRenderer,
+    AdditionWithCarryResultRenderer 
+} from './exercises.math.renderer';
 
 /**
  * Numeric Bounds
@@ -69,7 +73,12 @@ export class ExerciseMathImpl implements ExerciseMath {
     constructor(public expression: Expression, public renderer: Renderer) { }
     get() {
         if (this.rendered.length === 0) {
-            this.rendered.push(this.renderer.toMaskedString(this.expression));
+            if( this.renderer['toMaskedString'] !== undefined) {
+                this.rendered.push(this.renderer.toMaskedString(this.expression));
+            }
+            if( this.renderer['toRenderedParts'] !== undefined) {
+                this.rendered = this.rendered.concat(this.renderer.toRenderedParts(this.expression));
+            }
         }
         return this.rendered;
     }
@@ -127,9 +136,9 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
 
 function determineRenderer(level: number): Renderer {
     if( level === 2) {
-
+        return new AdditionWithCarryResultRenderer();
     }
-    return new SimpleExpressionResultRender();
+    return new SimpleExpressionResultRenderer();
 }
 
 /**
@@ -273,16 +282,7 @@ export function multN10ofX(x: number): ExerciseMath {
         { range: rangeN10 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRender());
-}
-
-function multN10ofXofY(x: number, y: number): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { exactMatchOf: x },
-        { exactMatchOf: y }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRender());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
 }
 
 export function multR100(): ExerciseMath {
@@ -292,7 +292,7 @@ export function multR100(): ExerciseMath {
         { range: rangeN100 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRender());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
 }
 
 
