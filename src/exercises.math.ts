@@ -1,5 +1,9 @@
 import { generateExpression, generateDivisionWithRest } from './exercises.math.generator';
-import { funcMap, add, sub, mult, Renderer, ExpressionRender } from './exercises.math.renderer';
+import { funcMap, add, sub, mult, 
+    Renderer, 
+    SimpleExpressionResultRenderer,
+    AdditionWithCarryResultRenderer 
+} from './exercises.math.renderer';
 
 /**
  * Numeric Bounds
@@ -69,7 +73,12 @@ export class ExerciseMathImpl implements ExerciseMath {
     constructor(public expression: Expression, public renderer: Renderer) { }
     get() {
         if (this.rendered.length === 0) {
-            this.rendered.push(this.renderer.toMaskedString(this.expression));
+            if( this.renderer['toMaskedString'] !== undefined) {
+                this.rendered.push(this.renderer.toMaskedString(this.expression));
+            }
+            if( this.renderer['toRenderedParts'] !== undefined) {
+                this.rendered = this.rendered.concat(this.renderer.toRenderedParts(this.expression));
+            }
         }
         return this.rendered;
     }
@@ -96,13 +105,14 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 // get constraints for operands and result
                 const constraints: NumConstraint[] = e.operands;
                 const resultConstraint: NumConstraint = e.result;
+                const renderer: Renderer = determineRenderer(e.level);
 
                 // get operations
                 let functs: ((a: number, b: number) => number)[] = [];
                 // all but div
                 e.operations.filter(op => !(op === 'div')).map(op => functs.push(funcMap[op].func));
                 let exp: Expression = generateExpression(functs, constraints, resultConstraint);
-                const em: ExerciseMath = new ExerciseMathImpl(exp, new ExpressionRender());
+                const em: ExerciseMath = new ExerciseMathImpl(exp, renderer);
                 exercise.push(em);
             }
             exercises.push(exercise);
@@ -110,8 +120,9 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
             // handle divisionWithRest
             if (e.operations[0] === 'div') {
                 const divExprs: Expression[] = genDivWithRest(e.operands);
+                const renderer: Renderer = determineRenderer(e.level);
                 for (let j = 0; j < divExprs.length; j++) {
-                    exercise.push(new ExerciseMathImpl(divExprs[j], new ExpressionRender()));
+                    exercise.push(new ExerciseMathImpl(divExprs[j],renderer));
                 }
             }
         }
@@ -121,6 +132,13 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
             resolve(exercises);
         }
     });
+}
+
+function determineRenderer(level: number): Renderer {
+    if( level === 2) {
+        return new AdditionWithCarryResultRenderer();
+    }
+    return new SimpleExpressionResultRenderer();
 }
 
 /**
@@ -264,16 +282,7 @@ export function multN10ofX(x: number): ExerciseMath {
         { range: rangeN10 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new ExpressionRender());
-}
-
-function multN10ofXofY(x: number, y: number): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { exactMatchOf: x },
-        { exactMatchOf: y }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new ExpressionRender());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
 }
 
 export function multR100(): ExerciseMath {
@@ -283,7 +292,7 @@ export function multR100(): ExerciseMath {
         { range: rangeN100 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new ExpressionRender());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
 }
 
 
