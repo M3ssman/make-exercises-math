@@ -1,8 +1,9 @@
 import { generateExpression, generateDivisionWithRest } from './exercises.math.generator';
-import { funcMap, add, sub, mult, 
-    Renderer, 
+import {
+    funcMap, add, sub, mult,
+    Renderer,
     SimpleExpressionResultRenderer,
-    AdditionWithCarryResultRenderer 
+    AdditionWithCarryResultRenderer
 } from './exercises.math.renderer';
 
 /**
@@ -73,10 +74,10 @@ export class ExerciseMathImpl implements ExerciseMath {
     constructor(public expression: Expression, public renderer: Renderer) { }
     get() {
         if (this.rendered.length === 0) {
-            if( this.renderer['toMaskedString'] !== undefined) {
+            if (this.renderer['toMaskedString'] !== undefined) {
                 this.rendered.push(this.renderer.toMaskedString(this.expression));
             }
-            if( this.renderer['toRenderedParts'] !== undefined) {
+            if (this.renderer['toRenderedParts'] !== undefined) {
                 this.rendered = this.rendered.concat(this.renderer.toRenderedParts(this.expression));
             }
         }
@@ -122,7 +123,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 const divExprs: Expression[] = genDivWithRest(e.operands);
                 const renderer: Renderer = determineRenderer(e.level);
                 for (let j = 0; j < divExprs.length; j++) {
-                    exercise.push(new ExerciseMathImpl(divExprs[j],renderer));
+                    exercise.push(new ExerciseMathImpl(divExprs[j], renderer));
                 }
             }
         }
@@ -135,7 +136,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
 }
 
 function determineRenderer(level: number): Renderer {
-    if( level === 2) {
+    if (level === 2) {
         return new AdditionWithCarryResultRenderer();
     }
     return new SimpleExpressionResultRenderer();
@@ -256,7 +257,18 @@ export const addN50N25subN20: ExerciseType = {
 };
 
 export const divN100WithRest: ExerciseType = {
-    operations:['div']
+    operations: ['div']
+};
+
+export const add_add_carry: ExerciseType = {
+    quantity: 12,
+    level: 2,
+    operations: ['add', 'add'],
+    operands: [
+        { range: { min: 500, max: 9999 } },
+        { range: { max: 1500 } },
+        { range: { max: 100 } }
+    ]
 };
 
 /**
@@ -296,11 +308,12 @@ export function multR100(): ExerciseMath {
 }
 
 
+
 /**
  * Generate Division Exercises with optional Rest
  */
 function genDivWithRest(constraints?: NumConstraint[], count?: number): Expression[] {
-    const constrs: NumConstraint[] = constraints || [{ range: { max: 100, min:10 } }, { range: { max: 12, min: 2 } }];
+    const constrs: NumConstraint[] = constraints || [{ range: { max: 100, min: 10 } }, { range: { max: 12, min: 2 } }];
     const divIterator = generateDivisionWithRest(constrs);
     const max = count || 12;
     const exprs = [];
