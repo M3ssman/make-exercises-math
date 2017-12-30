@@ -13,8 +13,9 @@ The central API is a method called "makeSet" from the Library. It expecteds an A
 ### Definition of Exercise Types
 
 The Exercise Options can be though of regular JSON with the following mandatory Properties:
-* ```level```: number  
-  Level of Exercise Type, currently set to "1".
+* ```renderer```: number  
+  Renderer to use, default set to "1", which means that a single Line will be output where the result is masked with an underscore.  
+  Rendering Addition with Carry requires renderer "2" because of additional logic to calculate the carry.
 * ```quantity```: number  
   Amount of Exercises, defaults to 12.
 * ```operations```: string[]  
@@ -83,6 +84,7 @@ Currently, it supports the following ExerciseTypes:
 * add_add_
 * addN50N25subN20
 * divN100WithRest
+* add_add_carry
 
 The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
@@ -93,6 +95,8 @@ The "addN50N25subN20" contains 2 operations and means therefore: "first add 2 Nu
 This way, the "add_add_" just sums 3 Numbers. To reduce difficulty, the first Summand is within Range N100, the 2nd between 5-25 and the last one somewhere between 0-20.
 
 The "divN100WithRest" generates an Exercise of Division, with the Dividend between 10-100, the Divisor 2-12 and an optional Rest Part which divides the Result with a capital "R" if it exists.
+
+The "add_add_carry" will create an Exercise with 3 Summands that involves additional Carry Logic. In order to output each term independently, it returns an Array containing all involved Terms.
 
 ## Example Usage
 
