@@ -77,16 +77,61 @@ export class SimpleExpressionResultRenderer implements Renderer {
 export class AdditionWithCarryResultRenderer implements Renderer {
     toRenderedParts(expression: Expression): string[] {
         let result = [];
-        if (expression.operands) {
-            result = [].concat(expression.operands);
-            result.push(calculateCarry(expression));
+        if (expression.operands && expression.value) {
+            const str_add = funcMap[expression.operations[0]].label;
+            const str_ops = expression.operands.map(o => o.toString());
+            const carry = calculateCarry(expression);
+            const str_val = expression.value.toString();
+            const max_len = calculateMaxLen(str_ops, str_val, carry);
+
+            // respect operator and whitespace after operator
+            const tar_len = max_len + 2 ;
+            console.log('max_len: '+ max_len+ ', tar_len: '+ tar_len);
+
+            // fill whitespaces
+            const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
+            const filled_val = prepend_ws(tar_len, str_val);
+
+            // where to prepend the operator char
+            let tmp_carry = '';
+            if(carry.trim().length > 0) {
+                tmp_carry = prepend_ws(tar_len, carry);
+                tmp_carry = str_add + ' ' + tmp_carry.substring(2);
+            } else {
+                const l = filled_ops.length-1;
+                filled_ops[l] = str_add+ ' ' + filled_ops[l].substring(2);
+            }
+
+            // collect final results
+            result = [].concat(filled_ops);
+            if(tmp_carry.trim().length > 0) {
+                result.push(tmp_carry);
+            }
+            result.push(filled_val.replace(/[0-9]/g,'_'));
         }
         // push value at last
-        if (typeof expression.value === 'number') {
-            result.push(expression.value);
-        }
         return result;
     }
+}
+
+function prepend_ws(tar_len: number, op: string) {
+    const cur_diff = tar_len - op.length;
+    let s = '';
+    for (let i = 0; i < cur_diff; i++) {
+        s += ' ';
+    }
+    return s + op;
+}
+
+function calculateMaxLen(ops: string[], ...args: string[]): number {
+    return ops.concat(args).reduce((p, c) => {
+        if (c.length > p) {
+            return c.length;
+        } else {
+            return p;
+        }
+    },
+    0);
 }
 
 function calculateCarry(expression: Expression): string {
@@ -109,7 +154,7 @@ function calculateCarry(expression: Expression): string {
     // calculate carry
     const carry = _calculate_carry(inv_tab);
 
-    return carry.replace(/0/g,' ');
+    return carry.replace(/0/g, ' ').replace(/[1-9]/g,'_');
 }
 
 function _decompose_digit(z: number): number[] {
@@ -162,13 +207,13 @@ function _calculate_carry(cs: number[][]): string {
     let s = '';
     let c = 0;
     for (let i = 0; i < cs.length; i++) {
-        let v = cs[i].reduce((p,c) => p + c);
+        let v = cs[i].reduce((p, c) => p + c);
         v += c;
-        if(v >= 10 ) {
+        if (v >= 10) {
             c = Math.floor(v / 10);
             s = c + s;
-            if( i === 0) {
-                s = s+ '0';
+            if (i === 0) {
+                s = s + '0';
                 continue;
             }
         } else {

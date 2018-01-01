@@ -13,21 +13,23 @@ describe('Addition with Carry', function () {
         operations: ['add', 'add' ],
         operands: [ {exactMatchOf: 9903}, {exactMatchOf: 819}, {exactMatchOf: 77}]
     };
-    const carry = '11 1 ';
+    const carry = '+ __ _ ';
 
     it('should generate 1 Addition with Carry '+carry, function (done) {
         makeSet([opts]).then((exercises: ExerciseMath[][]) => {
             assert.equal(1, exercises.length);
             for (let e = 0; e < exercises.length; e++) {
                 for (let f = 0; f < exercises[e].length; f++) {
-                    assert.equal(1, exercises[e].length);
                     const result = exercises[e][f].get();
-                    assert.equal(5, result.length);
                     const actual = result[result.length-2];
+                    const value = result[result.length-1];
+                    
+                    assert.equal(5, result.length);
                     assert.isTrue(typeof actual === 'string');
-                    const plusOffset = actual.indexOf('0');
-                    assert.isTrue(plusOffset === -1);
                     assert.equal(carry, actual);
+                    assert.equal('  _____', value);
+                    assert.equal(actual.length, value.length);
+                    assert.equal(actual.length, result[0].length);
                 }
             }
             done();

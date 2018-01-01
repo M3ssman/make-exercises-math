@@ -261,7 +261,7 @@ export const divN100WithRest: ExerciseType = {
 };
 
 export const add_add_carry: ExerciseType = {
-    quantity: 12,
+    quantity: 4,
     level: 2,
     operations: ['add', 'add'],
     operands: [
