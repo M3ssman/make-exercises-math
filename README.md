@@ -13,9 +13,9 @@ The central API is a method called "makeSet" from the Library. It expecteds an A
 ### Definition of Exercise Types
 
 The Exercise Options can be though of regular JSON with the following mandatory Properties:
-* ```renderer```: number  
-  Renderer to use, default set to "1", which means that a single Line will be output where the result is masked with an underscore.  
-  Rendering Addition with Carry requires renderer "2" because of additional logic to calculate the carry.
+* ```level```: number  
+  Rendering Level. Default "1", which means that a single Line will be output where the result is masked with an underscore.  
+  Rendering Addition with Carry requires Level "2" because of additional logic to calculate the carry and pre-fill each rendered Line.
 * ```quantity```: number  
   Amount of Exercises, defaults to 12.
 * ```operations```: string[]  
