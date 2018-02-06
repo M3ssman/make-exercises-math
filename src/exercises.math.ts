@@ -3,7 +3,7 @@ import {
     funcMap, add, sub, mult,
     Renderer,
     SimpleExpressionResultRenderer,
-    AdditionWithCarryResultRenderer
+    AdditionWithCarryExpressionRenderer
 } from './exercises.math.renderer';
 
 /**
@@ -55,10 +55,7 @@ export interface ExerciseType {
 export interface Expression {
     operands: number[];
     operations: string[];
-    eq: string;
     value: number | number[];
-    toString(): string;
-    toMaskedString?(): string;
 }
 
 /**
@@ -67,10 +64,12 @@ export interface Expression {
 export interface ExerciseMath {
     rendered: string[];
     expression: Expression;
+    intermediates: number[];
     get(): string[];
 }
 export class ExerciseMathImpl implements ExerciseMath {
-    rendered: string[] = [];
+    rendered = [];
+    intermediates = [];
     constructor(public expression: Expression, public renderer: Renderer) { }
     get() {
         if (this.rendered.length === 0) {
@@ -137,7 +136,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
 
 function determineRenderer(level: number): Renderer {
     if (level === 2) {
-        return new AdditionWithCarryResultRenderer();
+        return new AdditionWithCarryExpressionRenderer();
     }
     return new SimpleExpressionResultRenderer();
 }

@@ -15,7 +15,7 @@ export function generateExpression(
     resultConstraints: NumConstraint): Expression {
 
     let x = 0, y = 0, r = 0, operands = [], expression: Expression = {
-        operands: [], operations: [], eq: '=', value: 0
+        operands: [], operations: [], value: 0
     };
     let xConstr, yConstr;
     let nr_ok = false, r_ok = true, all_again = true;
@@ -154,6 +154,6 @@ export function* generateDivisionWithRest(constraints?: NumConstraint[]): Iterab
         }
 
         // yield expression
-        yield { operands: [dividend, divisor], operations: ['div'], eq: '=', value: vals };
+        yield { operands: [dividend, divisor], operations: ['div'], value: vals };
     }
 }

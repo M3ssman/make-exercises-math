@@ -65,7 +65,7 @@ export class SimpleExpressionResultRenderer implements Renderer {
                 xpr += expression.operands[r];
             }
         }
-        return '' + xpr + ' ' + expression.eq + ' ' + mask;
+        return '' + xpr + ' = ' + mask;
     }
 }
 
@@ -74,19 +74,20 @@ export class SimpleExpressionResultRenderer implements Renderer {
  * Advanced Rendering of Addition with Carry
  * 
  */
-export class AdditionWithCarryResultRenderer implements Renderer {
+export class AdditionWithCarryExpressionRenderer implements Renderer {
     toRenderedParts(expression: Expression): string[] {
         let result = [];
         if (expression.operands && expression.value) {
             const str_add = funcMap[expression.operations[0]].label;
             const str_ops = expression.operands.map(o => o.toString());
-            const carry = calculateCarry(expression);
+            const carryAddIntermediates: number[][] = calculate_carry_add(expression.operands);
+            const carryRaw = render_carry_add(carryAddIntermediates);
+            const renderedCarry = mask_carry_add(carryRaw);
             const str_val = expression.value.toString();
-            const max_len = calculateMaxLen(str_ops, str_val, carry);
+            const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
 
             // respect operator and whitespace after operator
             const tar_len = max_len + 2 ;
-            console.log('max_len: '+ max_len+ ', tar_len: '+ tar_len);
 
             // fill whitespaces
             const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
@@ -94,8 +95,8 @@ export class AdditionWithCarryResultRenderer implements Renderer {
 
             // where to prepend the operator char
             let tmp_carry = '';
-            if(carry.trim().length > 0) {
-                tmp_carry = prepend_ws(tar_len, carry);
+            if(renderedCarry.trim().length > 0) {
+                tmp_carry = prepend_ws(tar_len, renderedCarry);
                 tmp_carry = str_add + ' ' + tmp_carry.substring(2);
             } else {
                 const l = filled_ops.length-1;
@@ -134,12 +135,17 @@ function calculateMaxLen(ops: string[], ...args: string[]): number {
     0);
 }
 
-function calculateCarry(expression: Expression): string {
+function mask_carry_add(carry: string): string {
+    // mask carry
+    return carry.replace(/0/g, ' ').replace(/[1-9]/g,'_');
+}
+
+function calculate_carry_add(ops: number[]): number[][] {
     let digit_tab = [];
     // decompose integers
-    for (let i = 0; i < expression.operands.length; i++) {
-        if (Number.isInteger(expression.operands[i])) {
-            const decomposition = _decompose_digit(expression.operands[i]);
+    for (let i = 0; i < ops.length; i++) {
+        if (Number.isInteger(ops[i])) {
+            const decomposition = _decompose_digit(ops[i]);
             const rev = decomposition.reverse();
             digit_tab[i] = rev;
         }
@@ -147,14 +153,8 @@ function calculateCarry(expression: Expression): string {
 
     // normalize carry Tab
     const norm_tab = _normalize_digit_tab(digit_tab);
-
     // invert tab
-    const inv_tab = _invert(norm_tab);
-
-    // calculate carry
-    const carry = _calculate_carry(inv_tab);
-
-    return carry.replace(/0/g, ' ').replace(/[1-9]/g,'_');
+    return _invert(norm_tab);
 }
 
 function _decompose_digit(z: number): number[] {
@@ -203,7 +203,7 @@ function _invert(ns: number[][]): number[][] {
     return is;
 }
 
-function _calculate_carry(cs: number[][]): string {
+function render_carry_add(cs: number[][]): string {
     let s = '';
     let c = 0;
     for (let i = 0; i < cs.length; i++) {
