@@ -87,7 +87,7 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
 
             // respect operator and whitespace after operator
-            const tar_len = max_len + 2 ;
+            const tar_len = max_len + 2;
 
             // fill whitespaces
             const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
@@ -95,20 +95,20 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
 
             // where to prepend the operator char
             let tmp_carry = '';
-            if(renderedCarry.trim().length > 0) {
+            if (renderedCarry.trim().length > 0) {
                 tmp_carry = prepend_ws(tar_len, renderedCarry);
                 tmp_carry = str_add + ' ' + tmp_carry.substring(2);
             } else {
-                const l = filled_ops.length-1;
-                filled_ops[l] = str_add+ ' ' + filled_ops[l].substring(2);
+                const l = filled_ops.length - 1;
+                filled_ops[l] = str_add + ' ' + filled_ops[l].substring(2);
             }
 
             // collect final results
             result = [].concat(filled_ops);
-            if(tmp_carry.trim().length > 0) {
+            if (tmp_carry.trim().length > 0) {
                 result.push(tmp_carry);
             }
-            result.push(filled_val.replace(/[0-9]/g,'_'));
+            result.push(filled_val.replace(/[0-9]/g, '_'));
         }
         // push value at last
         return result;
@@ -132,11 +132,10 @@ function calculateMaxLen(ops: string[], ...args: string[]): number {
             return p;
         }
     },
-    0);
+        0);
 }
 
 function mask_carry_add(carry: string): string {
-    // mask carry
     return carry.replace(/0/g, ' ').replace(/[1-9]/g,'_');
 }
 
@@ -206,19 +205,19 @@ function _invert(ns: number[][]): number[][] {
 function render_carry_add(cs: number[][]): string {
     let s = '';
     let c = 0;
+
     for (let i = 0; i < cs.length; i++) {
-        let v = cs[i].reduce((p, c) => p + c);
-        v += c;
+        let v = cs[i].reduce((p, c) => p + c, 0);
+        s = c + s;
+        if (c > 0) {
+            v += c;
+            c = 0;
+        }
+
         if (v >= 10) {
             c = Math.floor(v / 10);
-            s = c + s;
-            if (i === 0) {
-                s = s + '0';
-                continue;
-            }
-        } else {
-            s = '0' + s;
         }
+
     }
     return s;
 }
