@@ -44,8 +44,9 @@ export class NumConstraint {
 /**
  * Defines a single Exercise of Addition, etc.
  */
+type operation = "add" | "sub" | "mult" | "div";
 export interface ExerciseType {
-    operations: ["add" | "sub" | "mult" | "div"];
+    operations: operation[];
     quantity?: number;
     level?: number;
     operands?: NumConstraint[];
