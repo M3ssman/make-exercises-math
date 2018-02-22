@@ -85,6 +85,7 @@ Currently, it supports the following ExerciseTypes:
 * addN50N25subN20
 * divN100WithRest
 * add_add_carry
+* sub_carry
 
 The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
@@ -97,6 +98,8 @@ This way, the "add_add_" just sums 3 Numbers. To reduce difficulty, the first Su
 The "divN100WithRest" generates an Exercise of Division, with the Dividend between 10-100, the Divisor 2-12 and an optional Rest Part which divides the Result with a capital "R" if it exists.
 
 The "add_add_carry" will create an Exercise with 3 Summands that involves additional Carry Logic. In order to output each term independently, it returns an Array containing all involved Terms.
+
+The "sub_carry" creates an Exercise with a Subtrahend between 1500-9999 and a Minuend up to 1500. Alike with the "add_add_carry" it returns marks for the carry Digits.
 
 ## Example Usage
 
