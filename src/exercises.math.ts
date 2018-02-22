@@ -3,7 +3,8 @@ import {
     funcMap, add, sub, mult,
     Renderer,
     SimpleExpressionResultRenderer,
-    AdditionWithCarryExpressionRenderer
+    AdditionWithCarryExpressionRenderer,
+    SubtractionWithCarryExpressionRenderer
 } from './exercises.math.renderer';
 
 /**
@@ -75,7 +76,7 @@ export class ExerciseMathImpl implements ExerciseMath {
     get() {
         if (this.rendered.length === 0) {
             if (this.renderer['toMaskedString'] !== undefined) {
-                this.rendered.push(this.renderer.toMaskedString(this.expression));
+                this.rendered.push(this.renderer.toMaskedString(this.expression, '_'));
             }
             if (this.renderer['toRenderedParts'] !== undefined) {
                 this.rendered = this.rendered.concat(this.renderer.toRenderedParts(this.expression));
@@ -138,6 +139,8 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
 function determineRenderer(level: number): Renderer {
     if (level === 2) {
         return new AdditionWithCarryExpressionRenderer();
+    } else if (level === 3) {
+        return new SubtractionWithCarryExpressionRenderer();
     }
     return new SimpleExpressionResultRenderer();
 }
@@ -261,13 +264,23 @@ export const divN100WithRest: ExerciseType = {
 };
 
 export const add_add_carry: ExerciseType = {
-    quantity: 4,
+    quantity: 6,
     level: 2,
     operations: ['add', 'add'],
     operands: [
         { range: { min: 500, max: 9999 } },
         { range: { max: 1500 } },
         { range: { max: 100 } }
+    ]
+};
+
+export const sub_carry: ExerciseType = {
+    quantity: 6,
+    level: 3,
+    operations: ['sub'],
+    operands: [
+        { range: { min: 1500, max: 9999 }, greaterThanIndex: 1 },
+        { range: { max: 1500 } }
     ]
 };
 

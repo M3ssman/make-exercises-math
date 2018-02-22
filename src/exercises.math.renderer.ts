@@ -22,7 +22,7 @@ export const funcMap: { [key: string]: OpEntry } = {
  * Renderer Declaration
  */
 export interface Renderer {
-    toMaskedString?(expression: Expression): string;
+    toMaskedString?(expression: Expression, maskChar: string): string;
     toRenderedParts?(expression: Expression): string[];
 }
 
@@ -30,11 +30,11 @@ export interface Renderer {
  * Default Render Implementation
  */
 export class SimpleExpressionResultRenderer implements Renderer {
-    toMaskedString(expression: Expression): string {
+    toMaskedString(expression: Expression, maskChar: string): string {
         let mask = '';
         if (typeof expression.value === 'number') {
             for (let i = 0; i < expression.value.toString().length; i++) {
-                mask += '_';
+                mask += maskChar;
             }
 
             // handle rendering of division with optional Rest part
@@ -42,13 +42,13 @@ export class SimpleExpressionResultRenderer implements Renderer {
             if (expression.value.length !== undefined) {
                 const q = expression.value[0];
                 for (let i = 0; i < q.toString().length; i++) {
-                    mask += '_';
+                    mask += maskChar;
                 }
                 if (expression.value.length == 2) {
                     const r = expression.value[1];
                     mask += ' R ';
                     for (let i = 0; i < r.toString().length; i++) {
-                        mask += '_';
+                        mask += maskChar;
                     }
                 }
             }
@@ -80,9 +80,16 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
         if (expression.operands && expression.value) {
             const str_add = funcMap[expression.operations[0]].label;
             const str_ops = expression.operands.map(o => o.toString());
-            const carryAddIntermediates: number[][] = calculate_carry_add(expression.operands);
-            const carryRaw = render_carry_add(carryAddIntermediates);
-            const renderedCarry = mask_carry_add(carryRaw);
+            const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
+            const addCarryFunc: (r: number[], v: number) => number = (row, val) => {
+                if (val > 10) {
+                    return Math.floor(val / 10);
+                } else {
+                    return 0;
+                }
+            };
+            const carryRaw = renderCarry(operandsMatrix, addValueFunc, addCarryFunc);
+            const renderedCarry = maskCarry(carryRaw, '_');
             const str_val = expression.value.toString();
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
 
@@ -108,11 +115,16 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             if (tmp_carry.trim().length > 0) {
                 result.push(tmp_carry);
             }
+            // mask result
             result.push(filled_val.replace(/[0-9]/g, '_'));
         }
         // push value at last
         return result;
     }
+}
+
+function addValueFunc(row: number[], car: number): number {
+    return row.reduce((p, c) => p + c, car);
 }
 
 function prepend_ws(tar_len: number, op: string) {
@@ -135,11 +147,11 @@ function calculateMaxLen(ops: string[], ...args: string[]): number {
         0);
 }
 
-function mask_carry_add(carry: string): string {
-    return carry.replace(/0/g, ' ').replace(/[1-9]/g,'_');
+function maskCarry(carry: string, mask: string): string {
+    return carry.replace(/0/g, ' ').replace(/[1-9]/g, mask);
 }
 
-function calculate_carry_add(ops: number[]): number[][] {
+function calculateOperandsMatrix(ops: number[]): number[][] {
     let digit_tab = [];
     // decompose integers
     for (let i = 0; i < ops.length; i++) {
@@ -202,22 +214,91 @@ function _invert(ns: number[][]): number[][] {
     return is;
 }
 
-function render_carry_add(cs: number[][]): string {
+/**
+ * 
+ * Calculate Carry String from provided Digit-Matrix with given Value-Function
+ * 
+ * @param cs 
+ * @param valueFunc 
+ */
+function renderCarry(cs: number[][],
+    valueFunc: (row: number[], carry: number) => number,
+    carryFunc: (row: number[], value: number) => number): string {
     let s = '';
     let c = 0;
 
     for (let i = 0; i < cs.length; i++) {
-        let v = cs[i].reduce((p, c) => p + c, 0);
         s = c + s;
         if (c > 0) {
-            v += c;
             c = 0;
         }
 
-        if (v >= 10) {
-            c = Math.floor(v / 10);
-        }
-
+        let v = valueFunc(cs[i], c);
+        c = carryFunc(cs[i], v);
     }
     return s;
+}
+
+
+export class SubtractionWithCarryExpressionRenderer implements Renderer {
+    toRenderedParts(expression: Expression): string[] {
+        let result = [];
+        if (expression.operands && expression.value) {
+            const str_add = funcMap[expression.operations[0]].label;
+            const str_ops = expression.operands.map(o => o.toString());
+            const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
+
+            const carryRaw = renderCarry(operandsMatrix, subValFunc, subCarryFunc);
+            const renderedCarry = maskCarry(carryRaw, '_');
+            const str_val = expression.value.toString();
+            const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
+
+            // respect operator and whitespace after operator
+            const tar_len = max_len + 2;
+
+            // fill whitespaces
+            const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
+            const filled_val = prepend_ws(tar_len, str_val);
+
+            // where to prepend the operator char
+            let tmp_carry = '';
+            if (renderedCarry.trim().length > 0) {
+                tmp_carry = prepend_ws(tar_len, renderedCarry);
+                tmp_carry = str_add + ' ' + tmp_carry.substring(2);
+            } else {
+                const l = filled_ops.length - 1;
+                filled_ops[l] = str_add + ' ' + filled_ops[l].substring(2);
+            }
+
+            // collect final results
+            result = [].concat(filled_ops);
+            if (tmp_carry.trim().length > 0) {
+                result.push(tmp_carry);
+            }
+            // mask result
+            result.push(filled_val.replace(/[0-9]/g, '_'));
+        }
+        // push value at last
+        return result;
+    }
+}
+
+function subCarryFunc(row: number[], car: number): number {
+    if (row.length !== 2) {
+        return;
+    } else {
+        const s = row[0];
+        const m = row[1] + car;
+        return s >= m ? 0 : 1;;
+    }
+}
+
+function subValFunc(row: number[], car: number): number {
+    if (row.length !== 2) {
+        return;
+    } else {
+        const s = row[0];
+        const m = row[1] + car;
+        return s >= m ? s - m : (s + 10) - m;
+    }
 }
