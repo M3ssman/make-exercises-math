@@ -81,14 +81,8 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             const str_add = funcMap[expression.operations[0]].label;
             const str_ops = expression.operands.map(o => o.toString());
             const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
-            const addCarryFunc: (r: number[], v: number) => number = (row, val) => {
-                if (val > 10) {
-                    return Math.floor(val / 10);
-                } else {
-                    return 0;
-                }
-            };
-            const carryRaw = renderCarry(operandsMatrix, addValueFunc, addCarryFunc);
+            const addCarryFunc: (r: number[], v: number) => number = _addCarryFunc;
+            const carryRaw = renderCarry(operandsMatrix, _addValueFunc, addCarryFunc);
             const renderedCarry = maskCarry(carryRaw, '_');
             const str_val = expression.value.toString();
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
@@ -123,7 +117,15 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
-function addValueFunc(row: number[], car: number): number {
+function _addCarryFunc(r: number[], v: number): number {
+    if (v >= 10) {
+        return Math.floor(v / 10);
+    } else {
+        return 0;
+    }
+}
+
+function _addValueFunc(row: number[], car: number): number {
     return row.reduce((p, c) => p + c, car);
 }
 
@@ -248,7 +250,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
             const str_ops = expression.operands.map(o => o.toString());
             const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
 
-            const carryRaw = renderCarry(operandsMatrix, subValFunc, subCarryFunc);
+            const carryRaw = renderCarry(operandsMatrix, _subValFunc, _subCarryFunc);
             const renderedCarry = maskCarry(carryRaw, '_');
             const str_val = expression.value.toString();
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
@@ -283,7 +285,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
-function subCarryFunc(row: number[], car: number): number {
+function _subCarryFunc(row: number[], car: number): number {
     if (row.length !== 2) {
         return;
     } else {
@@ -293,7 +295,7 @@ function subCarryFunc(row: number[], car: number): number {
     }
 }
 
-function subValFunc(row: number[], car: number): number {
+function _subValFunc(row: number[], car: number): number {
     if (row.length !== 2) {
         return;
     } else {
