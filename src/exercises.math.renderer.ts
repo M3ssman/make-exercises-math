@@ -45,9 +45,9 @@ export class SimpleExpressionResultRenderer implements Renderer {
                     mask += maskChar;
                 }
                 if (expression.value.length == 2) {
-                    const r = expression.value[1];
+                    const ow = expression.value[1];
                     mask += ' R ';
-                    for (let i = 0; i < r.toString().length; i++) {
+                    for (let i = 0; i < ow.toString().length; i++) {
                         mask += maskChar;
                     }
                 }
@@ -57,12 +57,12 @@ export class SimpleExpressionResultRenderer implements Renderer {
         let ops = expression.operations.map(op => funcMap[op].label);
         let xpr = '';
         xpr += expression.operands[0];
-        for (let o = 0, r = 1; o < ops.length; o++ , r++) {
+        for (let o = 0, ow = 1; o < ops.length; o++ , ow++) {
             if (ops[o]) {
                 xpr += ops[o];
             }
-            if (expression.operands[r]) {
-                xpr += expression.operands[r];
+            if (expression.operands[ow]) {
+                xpr += expression.operands[ow];
             }
         }
         return '' + xpr + ' = ' + mask;
@@ -81,7 +81,7 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             const str_add = funcMap[expression.operations[0]].label;
             const str_ops = expression.operands.map(o => o.toString());
             const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
-            const addCarryFunc: (r: number[], v: number) => number = _addCarryFunc;
+            const addCarryFunc: (ow: number[], value: number) => number = _addCarryFunc;
             const carryRaw = renderCarry(operandsMatrix, _addValueFunc, addCarryFunc);
             const renderedCarry = maskCarry(carryRaw, '_');
             const str_val = expression.value.toString();
@@ -117,16 +117,16 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
-function _addCarryFunc(r: number[], v: number): number {
-    if (v >= 10) {
-        return Math.floor(v / 10);
+function _addCarryFunc(row: number[], value: number): number {
+    if (value >= 10) {
+        return Math.floor(value / 10);
     } else {
         return 0;
     }
 }
 
-function _addValueFunc(row: number[], car: number): number {
-    return row.reduce((p, c) => p + c, car);
+function _addValueFunc(row: number[], value: number): number {
+    return row.reduce((p, currentCarry) => p + currentCarry, value);
 }
 
 function prepend_ws(tar_len: number, op: string) {
@@ -139,9 +139,9 @@ function prepend_ws(tar_len: number, op: string) {
 }
 
 function calculateMaxLen(ops: string[], ...args: string[]): number {
-    return ops.concat(args).reduce((p, c) => {
-        if (c.length > p) {
-            return c.length;
+    return ops.concat(args).reduce((p, currentCarry) => {
+        if (currentCarry.length > p) {
+            return currentCarry.length;
         } else {
             return p;
         }
@@ -149,8 +149,8 @@ function calculateMaxLen(ops: string[], ...args: string[]): number {
         0);
 }
 
-function maskCarry(carry: string, mask: string): string {
-    return carry.replace(/0/g, ' ').replace(/[1-9]/g, mask);
+function maskCarry(value: string, mask: string): string {
+    return value.replace(/0/g, ' ').replace(/[1-9]/g, mask);
 }
 
 function calculateOperandsMatrix(ops: number[]): number[][] {
@@ -164,7 +164,7 @@ function calculateOperandsMatrix(ops: number[]): number[][] {
         }
     }
 
-    // normalize carry Tab
+    // normalize value Tab
     const norm_tab = _normalize_digit_tab(digit_tab);
     // invert tab
     return _invert(norm_tab);
@@ -187,18 +187,18 @@ function _normalize_digit_tab(dt: number[][]): number[][] {
     // get max
     const m = o[0].length;
     // normalize
-    const n: number[][] = o.map(v => __normalize(v, m));
+    const n: number[][] = o.map(value => __normalize(value, m));
     return n;
 }
 
-function __normalize(v: number[], m: number) {
-    const d = m - v.length;
+function __normalize(value: number[], m: number) {
+    const d = m - value.length;
     if (d > 0) {
-        const n = v.concat(new Array(d));
-        return n.fill(0, v.length);
+        const n = value.concat(new Array(d));
+        return n.fill(0, value.length);
     }
     else {
-        return v;
+        return value;
     }
 }
 
@@ -206,10 +206,10 @@ function _invert(ns: number[][]): number[][] {
     const is = [];
     const dimR = ns.length;
     const dimC = ns[0].length;
-    for (let c = 0; c < dimC; c++) {
+    for (let currentCarry = 0; currentCarry < dimC; currentCarry++) {
         let i = [];
-        for (let r = 0; r < dimR; r++) {
-            i.push(ns[r][c]);
+        for (let ow = 0; ow < dimR; ow++) {
+            i.push(ns[ow][currentCarry]);
         }
         is.push(i);
     }
@@ -224,21 +224,22 @@ function _invert(ns: number[][]): number[][] {
  * @param valueFunc 
  */
 function renderCarry(cs: number[][],
-    valueFunc: (row: number[], carry: number) => number,
+    valueFunc: (row: number[], value: number) => number,
     carryFunc: (row: number[], value: number) => number): string {
-    let s = '';
-    let c = 0;
+    let s = [];
+    let currentCarry = 0;
 
     for (let i = 0; i < cs.length; i++) {
-        s = c + s;
-        if (c > 0) {
-            c = 0;
+        s.unshift(currentCarry);
+
+        let value = valueFunc(cs[i], currentCarry);
+        if (currentCarry > 0) {
+            currentCarry = 0;
         }
 
-        let v = valueFunc(cs[i], c);
-        c = carryFunc(cs[i], v);
+        currentCarry = carryFunc(cs[i], value);
     }
-    return s;
+    return s.reduce((p,c) => p +c , '');
 }
 
 
@@ -285,22 +286,10 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
-function _subCarryFunc(row: number[], car: number): number {
-    if (row.length !== 2) {
-        return;
-    } else {
-        const s = row[0];
-        const m = row[1] + car;
-        return s >= m ? 0 : 1;;
-    }
+function _subValFunc(row: number[], carry: number): number {
+    return row[0] - (row[1] + carry);
+}
+function _subCarryFunc(row: number[], value: number): number {
+    return (row[0] >= row[1] - value) ? 0 : 1;
 }
 
-function _subValFunc(row: number[], car: number): number {
-    if (row.length !== 2) {
-        return;
-    } else {
-        const s = row[0];
-        const m = row[1] + car;
-        return s >= m ? s - m : (s + 10) - m;
-    }
-}

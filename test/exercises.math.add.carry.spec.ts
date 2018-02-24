@@ -25,7 +25,6 @@ describe('Addition with Carry', function () {
                     const value = result[result.length - 1];
 
                     assert.equal(5, result.length);
-                    assert.isTrue(typeof actual === 'string');
                     assert.equal(actual, carry);
                     assert.equal('  _____', value);
                     assert.equal(actual.length, value.length);
