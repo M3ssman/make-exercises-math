@@ -1,4 +1,4 @@
-import { Expression } from './exercises.math';
+import { Expression, ExerciseMath } from './exercises.math';
 
 /**
  * Basic Binary Functions
@@ -24,6 +24,7 @@ export const funcMap: { [key: string]: OpEntry } = {
 export interface Renderer {
     toMaskedString?(expression: Expression, maskChar: string): string;
     toRenderedParts?(expression: Expression): string[];
+    renderExtensions?(exerc: ExerciseMath): string[];
 }
 
 /**
@@ -75,16 +76,16 @@ export class SimpleExpressionResultRenderer implements Renderer {
  * 
  */
 export class AdditionWithCarryExpressionRenderer implements Renderer {
-    toRenderedParts(expression: Expression): string[] {
+    renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
-        if (expression.operands && expression.value) {
-            const str_add = funcMap[expression.operations[0]].label;
-            const str_ops = expression.operands.map(o => o.toString());
-            const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
-            const addCarryFunc: (ow: number[], value: number) => number = _addCarryFunc;
-            const carryRaw = renderCarry(operandsMatrix, _addValueFunc, addCarryFunc);
-            const renderedCarry = maskCarry(carryRaw, '_');
-            const str_val = expression.value.toString();
+        if (exerc.expression.operands && exerc.expression.value) {
+            const str_add = funcMap[exerc.expression.operations[0]].label;
+            const str_ops = exerc.expression.operands.map(o => o.toString());
+
+            const _v : number | number[] = exerc.extensions[0].value || [];
+            const cr = (_v instanceof Array ) ? _v.reduce((p, c) => p + c, ''): '';
+            const renderedCarry = maskCarry(cr, '_');
+            const str_val = exerc.expression.value.toString();
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
 
             // respect operator and whitespace after operator
@@ -117,17 +118,6 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
-function _addCarryFunc(row: number[], value: number): number {
-    if (value >= 10) {
-        return Math.floor(value / 10);
-    } else {
-        return 0;
-    }
-}
-
-function _addValueFunc(row: number[], value: number): number {
-    return row.reduce((p, currentCarry) => p + currentCarry, value);
-}
 
 function prepend_ws(tar_len: number, op: string) {
     const cur_diff = tar_len - op.length;
@@ -153,107 +143,18 @@ function maskCarry(value: string, mask: string): string {
     return value.replace(/0/g, ' ').replace(/[1-9]/g, mask);
 }
 
-function calculateOperandsMatrix(ops: number[]): number[][] {
-    let digit_tab = [];
-    // decompose integers
-    for (let i = 0; i < ops.length; i++) {
-        if (Number.isInteger(ops[i])) {
-            const decomposition = _decompose_digit(ops[i]);
-            const rev = decomposition.reverse();
-            digit_tab[i] = rev;
-        }
-    }
-
-    // normalize value Tab
-    const norm_tab = _normalize_digit_tab(digit_tab);
-    // invert tab
-    return _invert(norm_tab);
-}
-
-function _decompose_digit(z: number): number[] {
-    let a = z.toString();
-    let s = a.length;
-    const result: number[] = [];
-    for (let i = 0; i < s; i++) {
-        result[i] = Number.parseInt(a[i]);
-    }
-
-    return result;
-}
-
-function _normalize_digit_tab(dt: number[][]): number[][] {
-    // sort by number with max figures
-    const o = dt.sort((a: number[], b: number[]) => b.length - a.length);
-    // get max
-    const m = o[0].length;
-    // normalize
-    const n: number[][] = o.map(value => __normalize(value, m));
-    return n;
-}
-
-function __normalize(value: number[], m: number) {
-    const d = m - value.length;
-    if (d > 0) {
-        const n = value.concat(new Array(d));
-        return n.fill(0, value.length);
-    }
-    else {
-        return value;
-    }
-}
-
-function _invert(ns: number[][]): number[][] {
-    const is = [];
-    const dimR = ns.length;
-    const dimC = ns[0].length;
-    for (let currentCarry = 0; currentCarry < dimC; currentCarry++) {
-        let i = [];
-        for (let ow = 0; ow < dimR; ow++) {
-            i.push(ns[ow][currentCarry]);
-        }
-        is.push(i);
-    }
-    return is;
-}
-
-/**
- * 
- * Calculate Carry String from provided Digit-Matrix with given Value-Function
- * 
- * @param cs 
- * @param valueFunc 
- */
-function renderCarry(cs: number[][],
-    valueFunc: (row: number[], value: number) => number,
-    carryFunc: (row: number[], value: number) => number): string {
-    let s = [];
-    let currentCarry = 0;
-
-    for (let i = 0; i < cs.length; i++) {
-        s.unshift(currentCarry);
-
-        let value = valueFunc(cs[i], currentCarry);
-        if (currentCarry > 0) {
-            currentCarry = 0;
-        }
-
-        currentCarry = carryFunc(cs[i], value);
-    }
-    return s.reduce((p,c) => p +c , '');
-}
 
 
 export class SubtractionWithCarryExpressionRenderer implements Renderer {
-    toRenderedParts(expression: Expression): string[] {
+    renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
-        if (expression.operands && expression.value) {
-            const str_add = funcMap[expression.operations[0]].label;
-            const str_ops = expression.operands.map(o => o.toString());
-            const operandsMatrix: number[][] = calculateOperandsMatrix(expression.operands);
+        if (exerc.expression.operands && exerc.expression.value) {
+            const str_add = funcMap[exerc.expression.operations[0]].label;
+            const str_ops = exerc.expression.operands.map(o => o.toString());
+            const _v : number | number[] = exerc.extensions[0].value || [];
+            const renderedCarry = (_v instanceof Array ) ? _v.reduce((p, c) => p + c, ''): '';
 
-            const carryRaw = renderCarry(operandsMatrix, _subValFunc, _subCarryFunc);
-            const renderedCarry = maskCarry(carryRaw, '_');
-            const str_val = expression.value.toString();
+            const str_val = exerc.expression.value.toString();
             const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
 
             // respect operator and whitespace after operator
@@ -276,7 +177,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
             // collect final results
             result = [].concat(filled_ops);
             if (tmp_carry.trim().length > 0) {
-                result.push(tmp_carry);
+                result.push(maskCarry(tmp_carry, '_'));
             }
             // mask result
             result.push(filled_val.replace(/[0-9]/g, '_'));
@@ -284,12 +185,5 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
         // push value at last
         return result;
     }
-}
-
-function _subValFunc(row: number[], carry: number): number {
-    return row[0] - (row[1] + carry);
-}
-function _subCarryFunc(row: number[], value: number): number {
-    return (row[0] >= row[1] - value) ? 0 : 1;
 }
 

@@ -1,4 +1,10 @@
-import { generateExpression, generateDivisionWithRest } from './exercises.math.generator';
+import { generateExpression, 
+    generateDivisionWithRest, 
+    GenerateExtensionsFunc,
+    generateExtensionsDefault,
+    generateExtensionsCarryAdd,
+    generateExtensionsCarrySub
+} from './exercises.math.generator';
 import {
     funcMap, add, sub, mult,
     Renderer,
@@ -60,26 +66,42 @@ export interface Expression {
     value: number | number[];
 }
 
+export interface ExtensionExpression {
+    operands: number[][];
+    value: number[];
+}
+
 /**
  * Exercise Math Declarations
  */
 export interface ExerciseMath {
     rendered: string[];
     expression: Expression;
-    intermediates: number[];
+    extensions: ExtensionExpression[];
     get(): string[];
 }
 export class ExerciseMathImpl implements ExerciseMath {
     rendered = [];
-    intermediates = [];
-    constructor(public expression: Expression, public renderer: Renderer) { }
+    extensions = [];
+    constructor(public expression: Expression, public renderer: Renderer,
+        public extensionFunc: GenerateExtensionsFunc) { 
+            if(extensionFunc) {
+                this.extensions = this.extensionFunc(this.expression);
+            }
+        }
+
+    /** 
+     * 
+     * Get Result as rendered String Array
+     * 
+    */
     get() {
         if (this.rendered.length === 0) {
             if (this.renderer['toMaskedString'] !== undefined) {
                 this.rendered.push(this.renderer.toMaskedString(this.expression, '_'));
             }
-            if (this.renderer['toRenderedParts'] !== undefined) {
-                this.rendered = this.rendered.concat(this.renderer.toRenderedParts(this.expression));
+            if (this.renderer['renderExtensions'] !== undefined) {
+                this.rendered = this.rendered.concat(this.renderer.renderExtensions(this));
             }
         }
         return this.rendered;
@@ -108,13 +130,14 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 const constraints: NumConstraint[] = e.operands;
                 const resultConstraint: NumConstraint = e.result;
                 const renderer: Renderer = determineRenderer(e.level);
+                const extensionGenerator: GenerateExtensionsFunc = determineExtensionGenerator(e.level);
 
                 // get operations
                 let functs: ((a: number, b: number) => number)[] = [];
                 // all but div
                 e.operations.filter(op => !(op === 'div')).map(op => functs.push(funcMap[op].func));
                 let exp: Expression = generateExpression(functs, constraints, resultConstraint);
-                const em: ExerciseMath = new ExerciseMathImpl(exp, renderer);
+                const em: ExerciseMath = new ExerciseMathImpl(exp, renderer, extensionGenerator);
                 exercise.push(em);
             }
             exercises.push(exercise);
@@ -124,7 +147,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 const divExprs: Expression[] = genDivWithRest(e.operands);
                 const renderer: Renderer = determineRenderer(e.level);
                 for (let j = 0; j < divExprs.length; j++) {
-                    exercise.push(new ExerciseMathImpl(divExprs[j], renderer));
+                    exercise.push(new ExerciseMathImpl(divExprs[j], renderer, generateExtensionsDefault));
                 }
             }
         }
@@ -143,6 +166,15 @@ function determineRenderer(level: number): Renderer {
         return new SubtractionWithCarryExpressionRenderer();
     }
     return new SimpleExpressionResultRenderer();
+}
+
+function determineExtensionGenerator(level: number): GenerateExtensionsFunc {
+    if(level === 2) {
+        return generateExtensionsCarryAdd;
+    } else if (level === 3) {
+        return generateExtensionsCarrySub;
+    } 
+    return generateExtensionsDefault;
 }
 
 /**
@@ -307,7 +339,7 @@ export function multN10ofX(x: number): ExerciseMath {
         { range: rangeN10 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
 }
 
 export function multR100(): ExerciseMath {
@@ -317,7 +349,7 @@ export function multR100(): ExerciseMath {
         { range: rangeN100 }
     ];
     const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer());
+    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
 }
 
 
