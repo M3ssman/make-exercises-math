@@ -68,6 +68,7 @@ export interface Expression {
 
 export interface ExtensionExpression {
     operands: number[][];
+    carry?: number[];
     value: number[];
 }
 

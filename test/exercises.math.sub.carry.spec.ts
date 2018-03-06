@@ -28,7 +28,7 @@ describe('Subtraction with Carry', function () {
                     const actual = result[result.length - 2];
                     const value = result[result.length - 1];
 
-                    assert.equal('0,1,1,0', exercises[e][f].extensions[0].value.toString());
+                    assert.equal('0,1,1,0', exercises[e][f].extensions[0].carry.toString());
                     assert.equal(4, result.length);
                     assert.isTrue(typeof actual === 'string');
                     assert.equal(actual, maskedCarryStr);
@@ -62,7 +62,7 @@ describe('Subtraction with Carry', function () {
             for (let e = 0; e < exercises.length; e++) {
                 for (let f = 0; f < exercises[e].length; f++) {
                     const result = exercises[e][f];
-                    const ext = result.extensions[0].value;
+                    const ext = result.extensions[0].carry;
                     assert.equal('1,1,1,0', ext.toString());
                     
                     const value = result.expression.value;
@@ -104,7 +104,7 @@ describe('Subtraction with Carry', function () {
                     assert.equal(4, resultStr.length);
 
                     const ext = result.extensions;
-                    assert.equal('1,1,0', ext[0].value.toString());
+                    assert.equal('1,1,0', ext[0].carry.toString());
                     assert.equal(resultStr[2], '- __ ');
                 }
             }

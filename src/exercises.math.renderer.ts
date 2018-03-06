@@ -82,7 +82,7 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             const str_add = funcMap[exerc.expression.operations[0]].label;
             const str_ops = exerc.expression.operands.map(o => o.toString());
 
-            const _v : number | number[] = exerc.extensions[0].value || [];
+            const _v : number | number[] = exerc.extensions[0].carry || [];
             const cr = (_v instanceof Array ) ? _v.reduce((p, c) => p + c, ''): '';
             const renderedCarry = maskCarry(cr, '_');
             const str_val = exerc.expression.value.toString();
@@ -151,7 +151,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
         if (exerc.expression.operands && exerc.expression.value) {
             const str_add = funcMap[exerc.expression.operations[0]].label;
             const str_ops = exerc.expression.operands.map(o => o.toString());
-            const _v : number | number[] = exerc.extensions[0].value || [];
+            const _v : number | number[] = exerc.extensions[0].carry || [];
             const renderedCarry = (_v instanceof Array ) ? _v.reduce((p, c) => p + c, ''): '';
 
             const str_val = exerc.expression.value.toString();
