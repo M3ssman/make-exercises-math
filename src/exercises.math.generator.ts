@@ -6,6 +6,7 @@ import {
     ExerciseMath,
     ExerciseMathImpl
 } from './exercises.math';
+import { normalize } from 'path';
 
 /**
  * 
@@ -194,7 +195,6 @@ export function generateExtensionsCarryAdd(expr: Expression): ExtensionExpressio
     const ext: ExtensionExpression[] = [];
     const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
     const carry = calculateCarry(_invert(operandsMatrix), _addValueFunc, _addCarryFunc);
-    operandsMatrix.push(carry);
     ext.push({ operands: operandsMatrix, carry: carry, value: _decompose_digit(<number>expr.value) });
     return ext;
 }
@@ -272,6 +272,7 @@ function calculateOperandsMatrix(ops: number[]): number[][] {
 function _decompose_digit(z: number): number[] {
     let a = z.toString();
     let s = a.length;
+
     const result: number[] = [];
     for (let i = 0; i < s; i++) {
         result[i] = Number.parseInt(a[i]);
@@ -286,18 +287,26 @@ function _normalize_digit_tab(dt: number[][]): number[][] {
     // get max
     const m = o[0].length;
     // normalize
-    const n: number[][] = o.map(value => __normalize(value, m));
+    const n: number[][] = o.map(value => _normalize(value, m, true));
     return n;
 }
 
-function __normalize(value: number[], m: number) {
-    const d = m - value.length;
+/**
+ *  param value 
+ * @param m 
+ */
+function _normalize(vals: number[], m: number, left: boolean): number[] {
+    const d = m - vals.length;
     if (d > 0) {
-        const n = value.concat(new Array(d));
-        return n.fill(0, value.length);
-    }
-    else {
-        return value;
+        if (left) {
+            const n = vals.concat(new Array(d));
+            return n.fill(0, vals.length);
+        } else {
+            const m = new Array(d).fill(0);
+            return m.concat(vals);
+        }
+    } else {
+        return vals;
     }
 }
 
@@ -322,31 +331,52 @@ function _invert(ns: number[][]): number[][] {
  * @param expr 
  */
 export function generateExtensionsCarryMult(expr: Expression): ExtensionExpression[] {
-    const ext: ExtensionExpression[] = [];
-    
-    const operandsMatrix: number[][] = calculateMultOperandsMatrix(expr.operands);
-    const invertedMatrix: number[][] = _invert(operandsMatrix);
-    const result: ExtensionExpression = { operands: operandsMatrix, value: _decompose_digit(<number>expr.value) };
 
-    const c: number[] = calculateCarry(invertedMatrix, _addValueFunc, _addCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: c, value: _decompose_digit(<number>expr.value) });
+    const a: number = expr.operands[0];
+    const b: number[] = _enhance(_decompose_digit(expr.operands[1]).reverse());
+    const ext: ExtensionExpression[] = generateMultMatrizies(b, a, expr);
+
+    // requires aggregation stage since factor b is supposed to be at least 2-digit
+    if (b.length > 1) {
+        const vstmp: number[][] = ext.map(e => e.value);
+        const max: number = vstmp.map(v => v.length).reduce((p, c) => p > c ? p : c);
+        const vsnorm: number[][] = vstmp.map(r => _normalize(r, max, false));
+        // critical since plain reverse() operates on reference level!
+        const vsrev = vsnorm.map(v => [].concat(v).reverse());
+        const vsrevinvert: number[][] = _invert(vsrev);
+        const carry = calculateCarry(vsrevinvert, _addValueFunc, _addCarryFunc);
+        ext.push({ operands: vsnorm, carry: carry, value: _decompose_digit(<number>expr.value) });
+    }
     return ext;
 }
 
-function calculateMultOperandsMatrix(operands: number[]): number[][] {
-    const m: number[][] = [];
-    const f1: number[] = _decompose_digit(operands[0]).reverse();
-    const f2: number = operands[1];
-    for (let j = 0; j < f1.length; j++) {
-        const x = f2 * f1[j] * Math.pow(10, j);
-        let r: number[] = _decompose_digit(x);
+function _enhance(es: number[]): number[] {
+    return es.map((v, i) => v * Math.pow(10, i));
+}
 
-        // prepend '0's while not leading digit
-        for (let k = f1.length - j - 1; k > 0; k--) {
-            r.unshift(0);
+function generateMultMatrizies(b: number[], a: number, expr: Expression) {
+    const ext: ExtensionExpression[] = [];
+    for (let g = 0; g < b.length; g++) {
+        const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, b[g]);
+        const invertedMatrix: number[][] = _invert(operandsMatrix);
+        const result: ExtensionExpression = { operands: operandsMatrix, value: _decompose_digit(<number>expr.value) };
+        const c: number[] = calculateCarry(invertedMatrix, _addValueFunc, _addCarryFunc);
+        // sum current as matrix
+        const v: number[] = invertedMatrix.reduce((p1, c1) => p1.concat(c1.reduce((p2, c2) => p2 + c2)));
+        // remove trailing '0'
+        let i = 0;
+        while (v[i] === 0) {
+            v.shift();
         }
-
-        m.push(r);
+        ext.push({ operands: operandsMatrix, carry: c, value: v });
     }
-    return m;
+    return ext;
+}
+
+function calculateMultOperandsMatrix(a: number, b: number): number[][] {
+    const as: number[] = _decompose_digit(a).reverse();
+    const m = as.map((v, i) => b * v * Math.pow(10, i)).map(x => _decompose_digit(x));
+    const max: number = m.map(os => os.length).reduce((p, c) => p < c ? c : p);
+    const normM = m.map(_os => _normalize(_os, max, false));
+    return normM;
 }
