@@ -86,6 +86,9 @@ Currently, it supports the following ExerciseTypes:
 * divN100WithRest
 * add_add_carry
 * sub_carry
+* mult_N999_N9
+* mult_N999_N99
+* mult_N999_N999
 
 The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
