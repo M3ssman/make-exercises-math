@@ -101,6 +101,8 @@ The "add_add_carry" will create an Exercise with 3 Summands that involves additi
 
 The "sub_carry" creates an Exercise with a Subtrahend between 1500-9999 and a Minuend up to 1500. Alike with the "add_add_carry" it returns marks for the carry Digits.
 
+The "mult_N999_N9x" creates Exercises with full Extensions where the first Factor is between 100 .. 999 and the second one, starting as plain multiplier, ranges from 2 .. 10 | 10 .. 99 | 100 .. 999. Picking the last Type, "mult_N999_N999" can result up to 3 extensions matrices and an aggregation stage, since the multiplicand spans a maximum of 3 digits. This additional stage sums the extensions values with common add_add_ logic. Please note, that it's up to the user to handle these extensions, there are no marks included.
+
 ## Example Usage
 
 Please go to [http://github.com/M3ssman/make-exercises-math-app](http://github.com/M3ssman/make-exercises-math-app) for further Explanations. 
