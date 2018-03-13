@@ -3,7 +3,8 @@ import { generateExpression,
     GenerateExtensionsFunc,
     generateExtensionsDefault,
     generateExtensionsCarryAdd,
-    generateExtensionsCarrySub
+    generateExtensionsCarrySub,
+    generateExtensionsCarryMult
 } from './exercises.math.generator';
 import {
     funcMap, add, sub, mult,
@@ -174,7 +175,9 @@ function determineExtensionGenerator(level: number): GenerateExtensionsFunc {
         return generateExtensionsCarryAdd;
     } else if (level === 3) {
         return generateExtensionsCarrySub;
-    } 
+    } else if(level === 4) {
+        return generateExtensionsCarryMult;
+    }
     return generateExtensionsDefault;
 }
 
@@ -314,6 +317,21 @@ export const sub_carry: ExerciseType = {
     operands: [
         { range: { min: 1500, max: 9999 }, greaterThanIndex: 1 },
         { range: { max: 1500 } }
+    ]
+};
+
+/** 
+ * 
+ * Default for multiplication with f_1 {1000 .. 9999} and f_2 { 1 .. 10}
+ * 
+*/
+export const mult_N9999_N9: ExerciseType = {
+    quantity: 3,
+    level: 3,
+    operations: ['mult'],
+    operands: [
+        { range: {min: 1000, max: 9999}},
+        { range: {min: 1, max:10}}
     ]
 };
 

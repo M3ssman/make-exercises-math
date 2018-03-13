@@ -359,10 +359,20 @@ function generateMultMatrizies(b: number[], a: number, expr: Expression) {
     for (let g = 0; g < b.length; g++) {
         const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, b[g]);
         const invertedMatrix: number[][] = _invert(operandsMatrix);
+        // const revertedMatrix : number[][] = invertedMatrix.map(row => [].concat(row).reverse());
+        const revertedMatrix : number[][] =  [].concat(invertedMatrix).reverse();
+
         const result: ExtensionExpression = { operands: operandsMatrix, value: _decompose_digit(<number>expr.value) };
-        const c: number[] = calculateCarry(invertedMatrix, _addValueFunc, _addCarryFunc);
-        // sum current as matrix
-        const v: number[] = invertedMatrix.reduce((p1, c1) => p1.concat(c1.reduce((p2, c2) => p2 + c2)));
+        // const revertedInvertedMatrix = invertedMatrix.map(row => [].concat(row).reverse());
+        // const c: number[] = calculateCarry(revertedInvertedMatrix, _addValueFunc, _addCarryFunc);
+        const c: number[] = calculateCarry(revertedMatrix, _addValueFunc, _addCarryFunc);
+        // const _c: number[][] = _invert([c]);
+
+        invertedMatrix.forEach((row, i) => row.push(c[i]));
+
+        // sum plain as matrix
+        const v: number[] = invertedMatrix.map( row => (_getLastDigit(row)));
+
         // remove trailing '0'
         let i = 0;
         while (v[i] === 0) {
@@ -371,6 +381,15 @@ function generateMultMatrizies(b: number[], a: number, expr: Expression) {
         ext.push({ operands: operandsMatrix, carry: c, value: v });
     }
     return ext;
+}
+
+function _getLastDigit(row: number[]): number {
+    const r = row.reduce((p,c) => p+c);
+    if( r > 9) {
+        return r % 10;
+    } else {
+        return r;
+    }
 }
 
 function calculateMultOperandsMatrix(a: number, b: number): number[][] {
