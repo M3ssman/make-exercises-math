@@ -1,5 +1,6 @@
-import { generateExpression, 
-    generateDivisionWithRest, 
+import {
+    generateExpression,
+    generateDivisionWithRest,
     GenerateExtensionsFunc,
     generateExtensionsDefault,
     generateExtensionsCarryAdd,
@@ -86,11 +87,11 @@ export class ExerciseMathImpl implements ExerciseMath {
     rendered = [];
     extensions = [];
     constructor(public expression: Expression, public renderer: Renderer,
-        public extensionFunc: GenerateExtensionsFunc) { 
-            if(extensionFunc) {
-                this.extensions = this.extensionFunc(this.expression);
-            }
+        public extensionFunc: GenerateExtensionsFunc) {
+        if (extensionFunc) {
+            this.extensions = this.extensionFunc(this.expression);
         }
+    }
 
     /** 
      * 
@@ -171,11 +172,11 @@ function determineRenderer(level: number): Renderer {
 }
 
 function determineExtensionGenerator(level: number): GenerateExtensionsFunc {
-    if(level === 2) {
+    if (level === 2) {
         return generateExtensionsCarryAdd;
     } else if (level === 3) {
         return generateExtensionsCarrySub;
-    } else if(level === 4) {
+    } else if (level === 4) {
         return generateExtensionsCarryMult;
     }
     return generateExtensionsDefault;
@@ -325,13 +326,33 @@ export const sub_carry: ExerciseType = {
  * Default for multiplication with f_1 {1000 .. 9999} and f_2 { 1 .. 10}
  * 
 */
-export const mult_N9999_N9: ExerciseType = {
+export const mult_N999_N9: ExerciseType = {
     quantity: 3,
-    level: 3,
+    level: 4,
     operations: ['mult'],
     operands: [
-        { range: {min: 1000, max: 9999}},
-        { range: {min: 1, max:10}}
+        { range: { min: 100, max: 999 } },
+        { range: { min: 1, max: 10 } }
+    ]
+};
+
+export const mult_N999_N99: ExerciseType = {
+    quantity: 3,
+    level: 4,
+    operations: ['mult'],
+    operands: [
+        { range: { min: 100, max: 999 } },
+        { range: { min: 10, max: 99 } }
+    ]
+};
+
+export const mult_N999_N999: ExerciseType = {
+    quantity: 3,
+    level: 4,
+    operations: ['mult'],
+    operands: [
+        { range: { min: 100, max: 999 } },
+        { range: { min: 100, max: 999 } }
     ]
 };
 
