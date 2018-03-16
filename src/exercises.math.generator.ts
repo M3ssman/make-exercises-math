@@ -6,7 +6,6 @@ import {
     ExerciseMath,
     ExerciseMathImpl
 } from './exercises.math';
-import { normalize } from 'path';
 
 /**
  * 

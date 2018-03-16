@@ -79,7 +79,7 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
     renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
         if (exerc.expression.operands && exerc.expression.value) {
-            const str_add = funcMap[exerc.expression.operations[0]].label;
+            const str_op = funcMap[exerc.expression.operations[0]].label;
             const str_ops = exerc.expression.operands.map(o => o.toString());
 
             const _v : number | number[] = exerc.extensions[0].carry || [];
@@ -99,10 +99,10 @@ export class AdditionWithCarryExpressionRenderer implements Renderer {
             let tmp_carry = '';
             if (renderedCarry.trim().length > 0) {
                 tmp_carry = prepend_ws(tar_len, renderedCarry);
-                tmp_carry = str_add + ' ' + tmp_carry.substring(2);
+                tmp_carry = str_op + ' ' + tmp_carry.substring(2);
             } else {
                 const l = filled_ops.length - 1;
-                filled_ops[l] = str_add + ' ' + filled_ops[l].substring(2);
+                filled_ops[l] = str_op + ' ' + filled_ops[l].substring(2);
             }
 
             // collect final results
@@ -149,7 +149,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
     renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
         if (exerc.expression.operands && exerc.expression.value) {
-            const str_add = funcMap[exerc.expression.operations[0]].label;
+            const str_op = funcMap[exerc.expression.operations[0]].label;
             const str_ops = exerc.expression.operands.map(o => o.toString());
             const _v : number | number[] = exerc.extensions[0].carry || [];
             const renderedCarry = (_v instanceof Array ) ? _v.reduce((p, c) => p + c, ''): '';
@@ -168,10 +168,10 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
             let tmp_carry = '';
             if (renderedCarry.trim().length > 0) {
                 tmp_carry = prepend_ws(tar_len, renderedCarry);
-                tmp_carry = str_add + ' ' + tmp_carry.substring(2);
+                tmp_carry = str_op + ' ' + tmp_carry.substring(2);
             } else {
                 const l = filled_ops.length - 1;
-                filled_ops[l] = str_add + ' ' + filled_ops[l].substring(2);
+                filled_ops[l] = str_op + ' ' + filled_ops[l].substring(2);
             }
 
             // collect final results
@@ -187,3 +187,52 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
     }
 }
 
+
+export class SimpleMultiplicationExtensionRenderer implements Renderer {
+    renderExtensions(exerc: ExerciseMath): string[] {
+        let result = [];
+        if (exerc.expression.operands && exerc.extensions && exerc.expression.value) {
+            const str_op = funcMap[exerc.expression.operations[0]].label;
+            const str_ops: string[] = exerc.expression.operands.map(o => o.toString());
+            // render exercises first row
+            const rowOne = str_ops[0] + ' ' + str_op + ' ' + str_ops[1];
+            result.push(rowOne);
+            // first row must be the longest row
+            const max_len = rowOne.length;
+
+            exerc.extensions[0].operands
+                .map( op => op.reduce((pop, cop) => pop + cop.toString(), ''))
+                .map( opStr => replaceLeadingZeros(opStr))
+                .map( opStr2 => prepend_ws(max_len, opStr2))
+                .map( opStr3 => opStr3.replace(/[1-9]/g,'_'))
+                .forEach( ops => result.push(ops));
+
+            let carryStr = '';
+            const str_val = exerc.expression.value.toString();
+            if(exerc.extensions[0].carry && exerc.extensions[0].carry.filter( d => d > 0).length > 0) {
+                carryStr = exerc.extensions[0].carry.reduce((p,c) => p+c ,'') || '';
+                if(carryStr && carryStr.trim().length > 0) {
+                    result.push(maskCarry(prepend_ws(max_len, carryStr), '_'));
+                }
+            }
+
+            // fill whitespaces
+            const filled_val = prepend_ws(max_len, str_val);
+
+            // mask result
+            result.push(filled_val.replace(/[0-9]/g, '_'));
+        }
+        // push value at last
+        return result;
+    }
+}
+
+function replaceLeadingZeros(s: string): string {
+    let t: string[] = [];
+    let i = 0;
+    while(s.charAt(i) === '0') {
+        t[i++] = ' ';
+    }
+    let ts = t.reduce( (p,c) => p + c, '');
+    return ts.concat(s.substring(i));
+}

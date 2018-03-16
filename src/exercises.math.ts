@@ -12,7 +12,8 @@ import {
     Renderer,
     SimpleExpressionResultRenderer,
     AdditionWithCarryExpressionRenderer,
-    SubtractionWithCarryExpressionRenderer
+    SubtractionWithCarryExpressionRenderer,
+    SimpleMultiplicationExtensionRenderer
 } from './exercises.math.renderer';
 
 /**
@@ -132,7 +133,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 // get constraints for operands and result
                 const constraints: NumConstraint[] = e.operands;
                 const resultConstraint: NumConstraint = e.result;
-                const renderer: Renderer = determineRenderer(e.level);
+                const renderer: Renderer = determineRenderer(e);
                 const extensionGenerator: GenerateExtensionsFunc = determineExtensionGenerator(e.level);
 
                 // get operations
@@ -148,7 +149,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
             // handle divisionWithRest
             if (e.operations[0] === 'div') {
                 const divExprs: Expression[] = genDivWithRest(e.operands);
-                const renderer: Renderer = determineRenderer(e.level);
+                const renderer: Renderer = determineRenderer(e);
                 for (let j = 0; j < divExprs.length; j++) {
                     exercise.push(new ExerciseMathImpl(divExprs[j], renderer, generateExtensionsDefault));
                 }
@@ -162,11 +163,13 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
     });
 }
 
-function determineRenderer(level: number): Renderer {
-    if (level === 2) {
+function determineRenderer(e: ExerciseType): Renderer {
+    if (e.level === 2) {
         return new AdditionWithCarryExpressionRenderer();
-    } else if (level === 3) {
+    } else if (e.level === 3) {
         return new SubtractionWithCarryExpressionRenderer();
+    } else if(e.level === 4) {
+        return new SimpleMultiplicationExtensionRenderer();
     }
     return new SimpleExpressionResultRenderer();
 }
@@ -327,7 +330,7 @@ export const sub_carry: ExerciseType = {
  * 
 */
 export const mult_N999_N9: ExerciseType = {
-    quantity: 3,
+    quantity: 6,
     level: 4,
     operations: ['mult'],
     operands: [
