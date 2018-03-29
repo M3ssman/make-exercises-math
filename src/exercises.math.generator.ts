@@ -1,8 +1,9 @@
 // import { MathBaseOption } from './math.base-option';
-import { NumConstraint } from './exercises.math';
+import { NumConstraint} from './exercises.math';
 import {
     Expression,
     ExtensionExpression,
+    ExtensionType,
     ExerciseMath,
     ExerciseMathImpl
 } from './exercises.math';
@@ -67,7 +68,7 @@ export function generateExpression(
         if (r_const) {
             r_ok = __holdResultConstraints(r, r_const)
         }
-        // chek operandsConstraints
+        // check operandConstraints
         if (nr_ok && r_ok) {
             all_again = false;
         } else {
@@ -185,7 +186,7 @@ export function generateExtensionsDefault(expr: Expression): ExtensionExpression
             steps.push(p);
             return p;
         });
-        ext.push({ operands: [], carry: steps, value: _decompose_digit(<number>expr.value) });
+        ext.push({ carry: steps, type: ExtensionType.DEFAULT, value: _decompose_digit(<number>expr.value) });
     }
     return ext;
 }
@@ -194,7 +195,7 @@ export function generateExtensionsCarryAdd(expr: Expression): ExtensionExpressio
     const ext: ExtensionExpression[] = [];
     const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
     const carry = calculateCarry(_invert(operandsMatrix), _addValueFunc, _addCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, value: _decompose_digit(<number>expr.value) });
+    ext.push({ operands: operandsMatrix, carry: carry, type: ExtensionType.ADD_CARRY, value: _decompose_digit(<number>expr.value) });
     return ext;
 }
 
@@ -214,7 +215,7 @@ export function generateExtensionsCarrySub(expr: Expression): ExtensionExpressio
     const ext: ExtensionExpression[] = [];
     const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
     const carry: number[] = calculateCarry(_invert(operandsMatrix), _subValFunc, _subCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, value: _decompose_digit(<number>expr.value) });
+    ext.push({ operands: operandsMatrix, carry: carry, type: ExtensionType.SUB_CARRY, value: _decompose_digit(<number>expr.value) });
     return ext;
 }
 
@@ -282,7 +283,7 @@ function _decompose_digit(z: number): number[] {
 
 function _normalize_digit_tab(dt: number[][]): number[][] {
     // sort by number with max figures
-    const o = dt.sort((a: number[], b: number[]) => b.length - a.length);
+    const o = dt.sort((a: number[], divisor: number[]) => divisor.length - a.length);
     // get max
     const m = o[0].length;
     // normalize
@@ -332,19 +333,20 @@ function _invert(ns: number[][]): number[][] {
 export function generateExtensionsCarryMult(expr: Expression): ExtensionExpression[] {
 
     const a: number = expr.operands[0];
-    const b: number[] = _enhance(_decompose_digit(expr.operands[1]).reverse());
-    const ext: ExtensionExpression[] = generateMultMatrizies(b, a, expr);
+    const factor: number[] = _enhance(_decompose_digit(expr.operands[1]).reverse());
+    const ext: ExtensionExpression[] = generateMultMatrizies(factor, a, expr);
 
-    // requires aggregation stage since factor b is supposed to be at least 2-digit
-    if (b.length > 1) {
+    // requires aggregation stage since factor divisor is supposed to be at least 2-digit
+    if (factor.length > 1) {
         const vstmp: number[][] = ext.map(e => e.value);
         const max: number = vstmp.map(v => v.length).reduce((p, c) => p > c ? p : c);
         const vsnorm: number[][] = vstmp.map(r => _normalize(r, max, false));
+
         // critical since plain reverse() operates on reference level!
         const vsrev = vsnorm.map(v => [].concat(v).reverse());
         const vsrevinvert: number[][] = _invert(vsrev);
         const carry = calculateCarry(vsrevinvert, _addValueFunc, _addCarryFunc);
-        ext.push({ operands: vsnorm, carry: carry, value: _decompose_digit(<number>expr.value) });
+        ext.push({ operands: vsnorm, carry: carry, type: ExtensionType.DIV, value: _decompose_digit(<number>expr.value) });
     }
     return ext;
 }
@@ -353,48 +355,122 @@ function _enhance(es: number[]): number[] {
     return es.map((v, i) => v * Math.pow(10, i));
 }
 
-function generateMultMatrizies(b: number[], a: number, expr: Expression) {
+function generateMultMatrizies(divisor: number[], a: number, expr: Expression) {
     const ext: ExtensionExpression[] = [];
-    for (let g = 0; g < b.length; g++) {
-        const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, b[g]);
+    for (let g = 0; g < divisor.length; g++) {
+        const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, divisor[g]);
         const invertedMatrix: number[][] = _invert(operandsMatrix);
-        // const revertedMatrix : number[][] = invertedMatrix.map(row => [].concat(row).reverse());
-        const revertedMatrix : number[][] =  [].concat(invertedMatrix).reverse();
-
-        const result: ExtensionExpression = { operands: operandsMatrix, value: _decompose_digit(<number>expr.value) };
-        // const revertedInvertedMatrix = invertedMatrix.map(row => [].concat(row).reverse());
-        // const c: number[] = calculateCarry(revertedInvertedMatrix, _addValueFunc, _addCarryFunc);
+        const revertedMatrix: number[][] = [].concat(invertedMatrix).reverse();
+        const result: ExtensionExpression = { operands: operandsMatrix, type: ExtensionType.MULT_MULT, value: _decompose_digit(<number>expr.value) };
         const c: number[] = calculateCarry(revertedMatrix, _addValueFunc, _addCarryFunc);
-        // const _c: number[][] = _invert([c]);
 
         invertedMatrix.forEach((row, i) => row.push(c[i]));
 
-        // sum plain as matrix
-        const v: number[] = invertedMatrix.map( row => (_getLastDigit(row)));
+        // sum matrix
+        const v: number[] = invertedMatrix.map(row => (_getLastDigit(row)));
 
         // remove trailing '0'
         let i = 0;
         while (v[i] === 0) {
             v.shift();
         }
-        ext.push({ operands: operandsMatrix, carry: c, value: v });
+        ext.push({ operands: operandsMatrix, type: ExtensionType.MULT_MULT, carry: c, value: v });
     }
     return ext;
 }
 
 function _getLastDigit(row: number[]): number {
-    const r = row.reduce((p,c) => p+c);
-    if( r > 9) {
+    const r = row.reduce((p, c) => p + c);
+    if (r > 9) {
         return r % 10;
     } else {
         return r;
     }
 }
 
-function calculateMultOperandsMatrix(a: number, b: number): number[][] {
+function calculateMultOperandsMatrix(a: number, divisor: number): number[][] {
     const as: number[] = _decompose_digit(a).reverse();
-    const m = as.map((v, i) => b * v * Math.pow(10, i)).map(x => _decompose_digit(x));
+    const m = as.map((v, i) => divisor * v * Math.pow(10, i)).map(x => _decompose_digit(x));
     const max: number = m.map(os => os.length).reduce((p, c) => p < c ? c : p);
     const normM = m.map(_os => _normalize(_os, max, false));
     return normM;
+}
+
+
+/**
+ * 
+ * API Entry for Division Extensions
+ * 
+ * @param expr 
+ */
+export function generateExtensionsDiv(expr: Expression): ExtensionExpression[] {
+    const result: ExtensionExpression[] = [];
+    const as: number[] = _decompose_digit(expr.operands[0]);
+    let dividend = 0;
+    const divisor = expr.operands[1];
+    let i = 0;
+    let v = 0;
+
+    while (i < as.length) {
+        let asRest: number[] = as.slice(i);
+        // if we have a value, prepend
+        if (v > 0) {
+            asRest.unshift(v);
+        }
+
+        // find start
+        let j = 0
+        while (dividend < divisor) {
+            dividend = _compose_digit(asRest, j);
+            j++;
+        }
+        i = i + j;
+
+        let q: number = _how_often(dividend, divisor);
+        let s = divisor * q;
+        v = dividend - s;
+        let subExtension: ExtensionExpression = createExtension(dividend, s, v);
+        result.push(subExtension);
+        // prepare next iteration
+        dividend = v;
+        asRest = [];
+    }
+
+
+    return result;
+}
+
+function createExtension(d: number, s: number, v: number) {
+    const decomD = _decompose_digit(d);
+    const decomS = _decompose_digit(s);
+    const decomV = _decompose_digit(v);
+    let normalizedValue = _normalize(decomV, decomD.length, false);
+
+    let subExtension: ExtensionExpression = { operands: [decomD, decomS], type: ExtensionType.DIV, value: normalizedValue };
+    let inExpr: Expression = { operands: [d, s], operations: ['sub'], value: v };
+    let sub = generateExtensionsCarrySub(inExpr)[0];
+    if (sub.carry && sub.carry.some(j => j !== 0)) {
+        subExtension.carry = sub.carry;
+    }
+    return subExtension;
+}
+
+/**
+ * 
+ * Compose Number up to the m-th index from ns as sum from 0 to m using ns.c * 10^(m-ns.i)
+ * 
+ * @param ns 
+ * @param m 
+ */
+export function _compose_digit(ns: number[], m: number): number {
+    return ns.reduce((p, c, i) => (i <= m) ? p + c * Math.pow(10, m - i) : p, 0);
+}
+
+export function _how_often(a: number, b: number): number {
+    let i = 0;
+    while (a >= b) {
+        a = a - b;
+        i++;
+    }
+    return i;
 }

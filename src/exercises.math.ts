@@ -69,8 +69,13 @@ export interface Expression {
     value: number | number[];
 }
 
+export enum ExtensionType {
+    DEFAULT, ADD_CARRY, SUB_CARRY, MULT_SINGLE, MULT_MULT, DIV
+};
+
 export interface ExtensionExpression {
-    operands: number[][];
+    type: ExtensionType;
+    operands?: number[][];
     carry?: number[];
     value: number[];
 }

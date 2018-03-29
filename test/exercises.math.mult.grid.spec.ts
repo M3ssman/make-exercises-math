@@ -24,7 +24,6 @@ describe('Multiplication with grid-like Extensions', function () {
                     assert.isNotEmpty(actualExtensions);
 
                     const actualexs: String[] = exercise.get();
-                    console.log('extStr? ' + JSON.stringify(actualexs));
                     assert.isTrue(actualexs[0].indexOf('*') > -1);
                     assert.equal(5, actualexs.length);
                 }

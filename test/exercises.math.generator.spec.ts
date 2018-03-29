@@ -1,6 +1,11 @@
 import { assert, expect } from 'chai';
 import { ExerciseMath, Expression, ExtensionExpression } from '../src/exercises.math';
-import { generateExtensionsCarryMult } from '../src/exercises.math.generator';
+import {
+    generateExtensionsCarryMult,
+    generateExtensionsDiv,
+    _compose_digit,
+    _how_often
+} from '../src/exercises.math.generator';
 
 
 describe('Generator Functions', function () {
@@ -103,6 +108,62 @@ describe('Generator Functions', function () {
         assert.equal('1,2,0,0', exts[0].operands[2].toString());
         assert.equal('0,1,0,0', exts[0].carry.toString());
         assert.equal('1,5,0,0', exts[0].value.toString());
+    });
+
+    it('should generate correct extension set for 432 / 8', function () {
+        const expr: Expression = {
+            operands: [432, 8],
+            operations: ['div'],
+            value: 54
+        };
+        const exts: ExtensionExpression[] = generateExtensionsDiv(expr);
+        console.log('exts? ' + JSON.stringify(exts));
+        assert.equal(2, exts.length);
+        
+        assert.equal('4,3', exts[0].operands[0].toString());
+        assert.equal('4,0', exts[0].operands[1].toString());
+        assert.equal('0,3', exts[0].value.toString());
+
+        assert.equal('3,2', exts[1].operands[0].toString());
+        assert.equal('3,2', exts[1].operands[1].toString());
+        assert.equal('0,0', exts[1].value.toString());
+    });
+
+    it('should compose correct digital numbers as sum from 0 to m using c * 10^(m-i)', function () {
+        const as = [4,3,2,1];
+        assert.equal(4321, _compose_digit(as, 3));
+        assert.equal(432, _compose_digit(as, 2));
+        assert.equal(43, _compose_digit(as, 1));
+        assert.equal(4, _compose_digit(as, 0));
+        assert.equal(0, _compose_digit([], 100));
+    });
+
+    it('should determine how often b fits into a', function () {
+        assert.equal(4, _how_often(33, 8));
+        assert.equal(4, _how_often(32, 8));
+        assert.equal(3, _how_often(31, 8));
+    });
+
+    it('should generate correct extension set for 4096 / 64', function () {
+        const expr: Expression = {
+            operands: [4096, 64],
+            operations: ['div'],
+            value: 64
+        };
+        const exts: ExtensionExpression[] = generateExtensionsDiv(expr);
+        console.log('exts? ' + JSON.stringify(exts));
+        assert.equal(2, exts.length);
+        
+        assert.equal('4,0,9', exts[0].operands[0].toString());
+        assert.equal('3,8,4', exts[0].operands[1].toString());
+        assert.exists(exts[0].carry);
+        assert.equal('1,0,0', exts[0].carry.toString());
+        assert.equal('0,2,5', exts[0].value.toString());
+
+        assert.equal('2,5,6', exts[1].operands[0].toString());
+        assert.equal('2,5,6', exts[1].operands[1].toString());
+        assert.notExists(exts[1].carry);
+        assert.equal('0,0,0', exts[1].value.toString());
     });
 
 });
