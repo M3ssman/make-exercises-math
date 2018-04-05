@@ -311,17 +311,17 @@ function _normalize(vals: number[], m: number, left: boolean): number[] {
 }
 
 function _invert(ns: number[][]): number[][] {
-    const is = [];
-    const dimR = ns.length;
-    const dimC = ns[0].length;
-    for (let currentCarry = 0; currentCarry < dimC; currentCarry++) {
+    const ms = [];
+    const dimRow = ns.length;
+    const dimCol = ns[0].length;
+    for (let mc = 0; mc < dimCol; mc++) {
         let i = [];
-        for (let ow = 0; ow < dimR; ow++) {
-            i.push(ns[ow][currentCarry]);
+        for (let mr = 0; mr < dimRow; mr++) {
+            i.push(ns[mr][mc]);
         }
-        is.push(i);
+        ms.push(i);
     }
-    return is;
+    return ms;
 }
 
 /**

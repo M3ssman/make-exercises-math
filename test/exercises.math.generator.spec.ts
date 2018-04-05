@@ -117,7 +117,6 @@ describe('Generator Functions', function () {
             value: 54
         };
         const exts: ExtensionExpression[] = generateExtensionsDiv(expr);
-        console.log('exts? ' + JSON.stringify(exts));
         assert.equal(2, exts.length);
         
         assert.equal('4,3', exts[0].operands[0].toString());
@@ -151,7 +150,6 @@ describe('Generator Functions', function () {
             value: 64
         };
         const exts: ExtensionExpression[] = generateExtensionsDiv(expr);
-        console.log('exts? ' + JSON.stringify(exts));
         assert.equal(2, exts.length);
         
         assert.equal('4,0,9', exts[0].operands[0].toString());
