@@ -1,2 +1,5 @@
 # ignore test folder for npmjs
 test
+coverage
+.vscode
+.nyc_output
