@@ -2,11 +2,13 @@
   "name": "make-exercises-math",
   "version": "0.7.0",
   "description": "Make Exercises for Fundamental School Math Lectures",
+  "license": "EUPL-1.1",
   "repository": {
     "type": "",
     "url": "https://github.com/M3ssman/make-exercises-math.git"
   },
-  "main": "src/exercises.math.js",
+  "main": "./index.js",
+  "typings": "./index.d.ts",
   "files": [
     "src/*.js",
     "src/*.d.ts"
@@ -16,7 +18,7 @@
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
     "test": "NODE_ENV=test mocha",
     "coverage": "./node_modules/.bin/nyc npm test",
-    "prepublish": "tsc -d -p ."
+    "prepare": "tsc -d -p ."
   },
   "keywords": [
     "education",
