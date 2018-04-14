@@ -9,12 +9,14 @@ import {
     generateExtensionsDiv
 } from './exercises.math.generator';
 import {
-    funcMap, add, sub, mult,
+    funcMap, mult,
     Renderer,
+    StringRenderer,
     SimpleExpressionResultRenderer,
     AdditionWithCarryExpressionRenderer,
     SubtractionWithCarryExpressionRenderer,
-    SimpleMultiplicationExtensionRenderer
+    SimpleMultiplicationExtensionRenderer,
+    DivisionExtensionRenderer
 } from './exercises.math.renderer';
 
 /**
@@ -55,9 +57,11 @@ export class NumConstraint {
 /**
  * Defines a single Exercise of Addition, etc.
  */
-export type operation = "add" | "sub" | "mult" | "div";
+export type Operation = "add" | "sub" | "mult" | "div";
+
 export interface ExerciseType {
-    operations: operation[];
+    operations: Operation[];
+    extensionType?: ExtensionType;
     quantity?: number;
     level?: number;
     operands?: NumConstraint[];
@@ -75,7 +79,7 @@ export enum ExtensionType {
 };
 
 export interface ExtensionExpression {
-    type: ExtensionType;
+    extensionType: ExtensionType;
     operands?: number[][];
     carry?: number[];
     value: number[];
@@ -108,10 +112,10 @@ export class ExerciseMathImpl implements ExerciseMath {
     get() {
         if (this.rendered.length === 0) {
             if (this.renderer['toMaskedString'] !== undefined) {
-                this.rendered.push(this.renderer.toMaskedString(this.expression, '_'));
+                this.rendered.push((<StringRenderer>this.renderer).toMaskedString(this.expression, '_'));
             }
             if (this.renderer['renderExtensions'] !== undefined) {
-                this.rendered = this.rendered.concat(this.renderer.renderExtensions(this));
+                this.rendered = this.rendered.concat((<StringRenderer>this.renderer).renderExtensions(this));
             }
         }
         return this.rendered;
@@ -139,7 +143,7 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
                 const constraints: NumConstraint[] = e.operands;
                 const resultConstraint: NumConstraint = e.result;
                 const renderer: Renderer = determineRenderer(e);
-                const extensionGenerator: GenerateExtensionsFunc = determineExtensionGenerator(e.level);
+                const extensionGenerator: GenerateExtensionsFunc = determineExtensionGenerator(e);
 
                 // get operations
                 let functs: ((a: number, b: number) => number)[] = [];
@@ -156,21 +160,23 @@ export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][
             exercises.push(exercise);
 
             // handle divisionWithRest
-            if (e.operations[0] === 'div') {
-                if (e.level === 4) {
-                    let multFunc: ((a: number, b: number) => number) = funcMap['mult'].func;
-                    let _exp: Expression = generateExpression([multFunc], e.operands, e.result);
-                    const exp: Expression = {operations:['div'], value: _exp.operands[0], operands: [<number>_exp.value, _exp.operands[1]]};
-                    const em: ExerciseMath = new ExerciseMathImpl(exp, new SimpleMultiplicationExtensionRenderer(), generateExtensionsDiv)
-                    exercise.push(em);
-                } else {
-                    const divExprs: Expression[] = genDivWithRest(e.operands);
-                    const renderer: Renderer = determineRenderer(e);
-                    for (let j = 0; j < divExprs.length; j++) {
-                        exercise.push(new ExerciseMathImpl(divExprs[j], renderer, generateExtensionsDefault));
+            for (let i = 0; i < e.quantity; i++) {
+                if (e.operations[0] === 'div') {
+                    if (e.extensionType === ExtensionType.DIV) {
+                        let multFunc: ((a: number, b: number) => number) = funcMap['mult'].func;
+                        let _exp: Expression = generateExpression([multFunc], e.operands, e.result);
+                        const exp: Expression = {operations:['div'], value: _exp.operands[0], operands: [<number>_exp.value, _exp.operands[1]]};
+                        const em: ExerciseMath = new ExerciseMathImpl(exp, new DivisionExtensionRenderer(), generateExtensionsDiv)
+                        exercise.push(em);
+                    } else {
+                        const divExprs: Expression[] = genDivWithRest(e.operands);
+                        const renderer: Renderer = determineRenderer(e);
+                        for (let j = 0; j < divExprs.length; j++) {
+                            exercise.push(new ExerciseMathImpl(divExprs[j], renderer, generateExtensionsDefault));
+                        }
                     }
                 }
-            }
+            }            
         }
         if (exercises.length === 0) {
             reject('Unable to create Exercises: null or empty!');
@@ -187,16 +193,18 @@ function determineRenderer(e: ExerciseType): Renderer {
         return new SubtractionWithCarryExpressionRenderer();
     } else if (e.level === 4) {
         return new SimpleMultiplicationExtensionRenderer();
+    } else if (e.level === 5 || e.extensionType === ExtensionType.DIV) {
+        return new DivisionExtensionRenderer();
     }
     return new SimpleExpressionResultRenderer();
 }
 
-function determineExtensionGenerator(level: number): GenerateExtensionsFunc {
-    if (level === 2) {
+function determineExtensionGenerator(ex: ExerciseType): GenerateExtensionsFunc {
+    if (ex.level === 2) {
         return generateExtensionsCarryAdd;
-    } else if (level === 3) {
+    } else if (ex.level === 3) {
         return generateExtensionsCarrySub;
-    } else if (level === 4) {
+    } else if (ex.level === 4) {
         return generateExtensionsCarryMult;
     }
     return generateExtensionsDefault;
@@ -379,9 +387,10 @@ export const mult_N999_N999: ExerciseType = {
 export const div_even: ExerciseType = {
     quantity: 3,
     level: 4,
+    extensionType: ExtensionType.DIV,
     operations: ['div'],
     operands: [
-        { range: { min: 50, max: 99 }, greaterThanIndex: 1 },
+        { range: { min: 50, max: 99 } },
         { range: { min: 2, max: 99 } },
     ]
 };

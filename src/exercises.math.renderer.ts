@@ -1,4 +1,4 @@
-import { Expression, ExerciseMath } from './exercises.math';
+import { Expression, ExerciseMath, ExtensionExpression } from './exercises.math';
 
 /**
  * Basic Binary Functions
@@ -19,10 +19,14 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult }
 };
 
-/**
- * Renderer Declaration
- */
 export interface Renderer {
+
+}
+
+/**
+ * StringRenderer Declaration
+ */
+export interface StringRenderer extends Renderer {
     toMaskedString?(expression: Expression, maskChar: string): string;
     toRenderedParts?(expression: Expression): string[];
     renderExtensions?(exerc: ExerciseMath): string[];
@@ -31,7 +35,7 @@ export interface Renderer {
 /**
  * Default Render Implementation
  */
-export class SimpleExpressionResultRenderer implements Renderer {
+export class SimpleExpressionResultRenderer implements StringRenderer {
     toMaskedString(expression: Expression, maskChar: string): string {
         let mask = '';
         if (typeof expression.value === 'number') {
@@ -76,7 +80,7 @@ export class SimpleExpressionResultRenderer implements Renderer {
  * Advanced Rendering of Addition with Carry
  * 
  */
-export class AdditionWithCarryExpressionRenderer implements Renderer {
+export class AdditionWithCarryExpressionRenderer implements StringRenderer {
     renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
         if (exerc.expression.operands && exerc.expression.value) {
@@ -146,7 +150,7 @@ function maskCarry(value: string, mask: string): string {
 
 
 
-export class SubtractionWithCarryExpressionRenderer implements Renderer {
+export class SubtractionWithCarryExpressionRenderer implements StringRenderer {
     renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
         if (exerc.expression.operands && exerc.expression.value) {
@@ -189,7 +193,7 @@ export class SubtractionWithCarryExpressionRenderer implements Renderer {
 }
 
 
-export class SimpleMultiplicationExtensionRenderer implements Renderer {
+export class SimpleMultiplicationExtensionRenderer implements StringRenderer {
     renderExtensions(exerc: ExerciseMath): string[] {
         let result = [];
         if (exerc.expression.operands && exerc.extensions && exerc.expression.value) {
@@ -236,4 +240,20 @@ function replaceLeadingZeros(s: string): string {
     }
     let ts = t.reduce( (p,c) => p + c, '');
     return ts.concat(s.substring(i));
+}
+
+
+/**
+ * 
+ * Rendering for Division Extensions
+ * 
+ */
+export class DivisionExtensionRenderer implements StringRenderer {
+    renderExtensions(exerc: ExerciseMath): string[] {
+        const result: string [] = [];
+
+
+        return result;
+        // return new SubtractionWithCarryExpressionRenderer().renderExtensions(exerc);
+    }
 }

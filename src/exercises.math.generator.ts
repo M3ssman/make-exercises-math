@@ -186,7 +186,7 @@ export function generateExtensionsDefault(expr: Expression): ExtensionExpression
             steps.push(p);
             return p;
         });
-        ext.push({ carry: steps, type: ExtensionType.DEFAULT, value: _decompose_digit(<number>expr.value) });
+        ext.push({ carry: steps, extensionType: ExtensionType.DEFAULT, value: _decompose_digit(<number>expr.value) });
     }
     return ext;
 }
@@ -195,7 +195,7 @@ export function generateExtensionsCarryAdd(expr: Expression): ExtensionExpressio
     const ext: ExtensionExpression[] = [];
     const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
     const carry = calculateCarry(_invert(operandsMatrix), _addValueFunc, _addCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, type: ExtensionType.ADD_CARRY, value: _decompose_digit(<number>expr.value) });
+    ext.push({ operands: operandsMatrix, carry: carry, extensionType: ExtensionType.ADD_CARRY, value: _decompose_digit(<number>expr.value) });
     return ext;
 }
 
@@ -215,7 +215,7 @@ export function generateExtensionsCarrySub(expr: Expression): ExtensionExpressio
     const ext: ExtensionExpression[] = [];
     const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
     const carry: number[] = calculateCarry(_invert(operandsMatrix), _subValFunc, _subCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, type: ExtensionType.SUB_CARRY, value: _decompose_digit(<number>expr.value) });
+    ext.push({ operands: operandsMatrix, carry: carry, extensionType: ExtensionType.SUB_CARRY, value: _decompose_digit(<number>expr.value) });
     return ext;
 }
 
@@ -346,7 +346,7 @@ export function generateExtensionsCarryMult(expr: Expression): ExtensionExpressi
         const vsrev = vsnorm.map(v => [].concat(v).reverse());
         const vsrevinvert: number[][] = _invert(vsrev);
         const carry = calculateCarry(vsrevinvert, _addValueFunc, _addCarryFunc);
-        ext.push({ operands: vsnorm, carry: carry, type: ExtensionType.DIV, value: _decompose_digit(<number>expr.value) });
+        ext.push({ operands: vsnorm, carry: carry, extensionType: ExtensionType.DIV, value: _decompose_digit(<number>expr.value) });
     }
     return ext;
 }
@@ -361,7 +361,7 @@ function generateMultMatrizies(divisor: number[], a: number, expr: Expression) {
         const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, divisor[g]);
         const invertedMatrix: number[][] = _invert(operandsMatrix);
         const revertedMatrix: number[][] = [].concat(invertedMatrix).reverse();
-        const result: ExtensionExpression = { operands: operandsMatrix, type: ExtensionType.MULT_MULT, value: _decompose_digit(<number>expr.value) };
+        const result: ExtensionExpression = { operands: operandsMatrix, extensionType: ExtensionType.MULT_MULT, value: _decompose_digit(<number>expr.value) };
         const c: number[] = calculateCarry(revertedMatrix, _addValueFunc, _addCarryFunc);
 
         invertedMatrix.forEach((row, i) => row.push(c[i]));
@@ -374,7 +374,7 @@ function generateMultMatrizies(divisor: number[], a: number, expr: Expression) {
         while (v[i] === 0) {
             v.shift();
         }
-        ext.push({ operands: operandsMatrix, type: ExtensionType.MULT_MULT, carry: c, value: v });
+        ext.push({ operands: operandsMatrix, extensionType: ExtensionType.MULT_MULT, carry: c, value: v });
     }
     return ext;
 }
@@ -446,7 +446,7 @@ function createExtension(d: number, s: number, v: number) {
     const decomV = _decompose_digit(v);
     let normalizedValue = _normalize(decomV, decomD.length, false);
 
-    let subExtension: ExtensionExpression = { operands: [decomD, decomS], type: ExtensionType.DIV, value: normalizedValue };
+    let subExtension: ExtensionExpression = { operands: [decomD, decomS], extensionType: ExtensionType.DIV, value: normalizedValue };
     let inExpr: Expression = { operands: [d, s], operations: ['sub'], value: v };
     let sub = generateExtensionsCarrySub(inExpr)[0];
     if (sub.carry && sub.carry.some(j => j !== 0)) {
