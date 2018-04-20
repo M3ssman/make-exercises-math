@@ -243,6 +243,7 @@ function replaceLeadingZeros(s: string): string {
 }
 
 
+const signWithSpace = '- ';
 /**
  * 
  * Rendering for Division Extensions
@@ -250,10 +251,74 @@ function replaceLeadingZeros(s: string): string {
  */
 export class DivisionExtensionRenderer implements StringRenderer {
     renderExtensions(exerc: ExerciseMath): string[] {
-        const result: string [] = [];
+        let result: string [] = [];
+        if(_isValid(exerc)) {
+            const expr = exerc.expression;
+            const exts = exerc.extensions;
+            const gap = _calculateGap(signWithSpace.length);
+            const fillSpaces = _calculateFillString(exerc.extensions);
+            const firstRow = gap + expr.operands[0] + fillSpaces + ': ' + expr.operands[1] + ' = ' + expr.value;
+            result.push(firstRow);
 
+            if(exerc.extensions.length > 0) {
+                exerc.extensions.forEach((e, i, es) => result = result.concat(renderExtStr(e,i,es)));
+            }
+        }
 
         return result;
-        // return new SubtractionWithCarryExpressionRenderer().renderExtensions(exerc);
     }
+}
+
+function _isValid(exerc: ExerciseMath) {
+    return exerc.expression && exerc.expression.operands && exerc.expression.value && exerc.extensions;
+}
+
+function _calculateFillString(exts: ExtensionExpression[]): string {
+    return exts.reduce((p, _) => p += ' ', '');
+}
+
+function renderExtStr(e: ExtensionExpression, i: number, es: ExtensionExpression[]): string[] {
+    const r: string[] = [];
+
+    if(e.operands && e.value) {
+        let gap: string = _calculateGap(signWithSpace.length + i);  
+        if(i !== 0) {
+            const s = gap + e.operands[0].join('').replace(/[1-9]/g,'_');
+            r.push(s);
+        }
+        let m: string = e.operands[1].join('').replace(/[1-9]/g,'_');
+        let c = undefined;
+        if(e.carry) {
+            c = signWithSpace + e.carry.join('');
+            r.push(gap + m);
+        } else {
+            r.push(_calculateGap(i) + signWithSpace + m);
+        }
+        if(c) {
+            r.push(c.replace(/[1-9]/g, '_').replace(/0/g, ' '));
+        }
+        // only use value if last entry
+        if(i === (es.length -1) ) {
+            const _v = gap + e.value.join('');
+            let v = '';
+            for(let i = 0; i< _v.length-1; i++) {
+                if(_v[i] !== ' ' && v[i] !== '0') {
+                    v = v.concat(_calculateGap(_v.length - _v.substr(i-1).length), _v[_v.length-1]);
+                    break;
+                } else {
+                    v = v.concat(_v[i]);
+                }
+            }
+            r.push(v);
+        }
+    }
+    return r;
+}
+
+function _calculateGap(i: number) : string {
+    let s = '';
+    while(i-- > 0) {
+        s += ' ';
+    }
+    return s;
 }

@@ -1,5 +1,5 @@
 // import { MathBaseOption } from './math.base-option';
-import { NumConstraint} from './exercises.math';
+import { NumConstraint } from './exercises.math';
 import {
     Expression,
     ExtensionExpression,
@@ -317,7 +317,11 @@ function _invert(ns: number[][]): number[][] {
     for (let mc = 0; mc < dimCol; mc++) {
         let i = [];
         for (let mr = 0; mr < dimRow; mr++) {
-            i.push(ns[mr][mc]);
+            if (ns[mr] !== undefined && ns[mr][mc] !== undefined) {
+                i.push(ns[mr][mc]);
+            } else {
+                console.log('[WARN] invalid ns = ' + JSON.stringify(ns) + ' at mr = ' + mr + ', mc = ' + mc + ' !');
+            }
         }
         ms.push(i);
     }
@@ -411,6 +415,9 @@ export function generateExtensionsDiv(expr: Expression): ExtensionExpression[] {
     let i = 0;
     let v = 0;
 
+    // corner case issue: dividend is zero
+    let firstRun = true;
+
     while (i < as.length) {
         let asRest: number[] = as.slice(i);
         // if we have a value, prepend
@@ -418,24 +425,31 @@ export function generateExtensionsDiv(expr: Expression): ExtensionExpression[] {
             asRest.unshift(v);
         }
 
-        // find start
-        let j = 0
-        while (dividend < divisor) {
-            dividend = _compose_digit(asRest, j);
-            j++;
+        // corner-case: don't do this when dividend is actually zero
+        if (dividend === 0 && !firstRun) {
+            console.log('[WARN] - dividend considered ' + dividend+ ' (divisor: '+divisor+')');
+            i++;
+        } else {
+            // find start
+            let j = 0
+            while (dividend < divisor) {
+                dividend = _compose_digit(asRest, j);
+                j++;
+            }
+            i = i + j;
         }
-        i = i + j;
 
         let q: number = _how_often(dividend, divisor);
         let s = divisor * q;
         v = dividend - s;
         let subExtension: ExtensionExpression = createExtension(dividend, s, v);
         result.push(subExtension);
+        
         // prepare next iteration
         dividend = v;
+        firstRun = false;
         asRest = [];
     }
-
 
     return result;
 }
