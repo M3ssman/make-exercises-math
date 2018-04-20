@@ -89,6 +89,7 @@ Currently, it supports the following ExerciseTypes:
 * mult_N999_N9
 * mult_N999_N99
 * mult_N999_N999
+* div_even
 
 The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
@@ -107,6 +108,8 @@ The "sub_carry" creates an Exercise with a Subtrahend between 1500-9999 and a Mi
 The "mult_N999_N9x" creates Exercises with full Extensions where the first Factor is between 100 .. 999 and the second one, starting as plain multiplier, ranges from 2 .. 10 | 10 .. 99 | 100 .. 999. Picking the last Type, "mult_N999_N999" can result up to 3 extensions matrices and an aggregation stage, since the multiplicand spans a maximum of 3 digits. This additional stage sums the extensions values with common add_add_ logic.  
 ~~Please note, that it's up to the user to handle these extensions, there are no marks included.~~
 For the first flavour there's a default rendering included, which renders each digit as a multiple of ten. An extension line from a mulitplication with zero gets erased and stays blank.
+
+With "div_even" you get a implementation of divison Exercises, where the Dividend is in range 500 .. 9999 and the Divisor is between 2 .. 99.
 
 ## Example Usage
 
