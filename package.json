@@ -11,7 +11,8 @@
   "typings": "./index.d.ts",
   "files": [
     "src/*.js",
-    "src/*.d.ts"
+    "src/*.d.ts",
+    "./index.js"
   ],
   "scripts": {
     "pretest": "tsc -p .",
