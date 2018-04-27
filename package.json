@@ -7,12 +7,13 @@
     "type": "",
     "url": "https://github.com/M3ssman/make-exercises-math.git"
   },
-  "main": "./index.js",
-  "typings": "./index.d.ts",
+  "main": "index.js",
+  "typings": "index.d.ts",
   "files": [
     "src/*.js",
     "src/*.d.ts",
-    "./index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "scripts": {
     "pretest": "tsc -p .",
@@ -33,7 +34,8 @@
   "dependencies": {
     "@types/chai": "^4.0.10",
     "@types/mocha": "^2.2.44",
-    "@types/node": "^8.5.2"
+    "@types/node": "^8.5.2",
+    "grunt": "^1.0.2"
   },
   "devDependencies": {
     "chai": "4.1.2",
