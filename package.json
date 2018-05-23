@@ -16,10 +16,9 @@
     "index.d.ts"
   ],
   "scripts": {
-    "pretest": "tsc -p .",
+    "test": "nyc mocha --full-trace --bail test/**/*.spec.ts",
+    "pretest": "(find test/ -name '*.js*' -or -name '*.d.ts' | xargs rm && find test/ -name '*.js*' -or -name '*.d.ts' | xargs rm) || true",
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
-    "test": "NODE_ENV=test mocha",
-    "coverage": "./node_modules/.bin/nyc npm test",
     "prepare": "tsc -d -p ."
   },
   "keywords": [
@@ -33,32 +32,29 @@
   },
   "dependencies": {
     "@types/chai": "^4.0.10",
-    "@types/mocha": "^2.2.44",
-    "@types/node": "^8.5.2",
-    "grunt": "^1.0.2"
+    "@types/mocha": "^5.2.0"
   },
   "devDependencies": {
     "chai": "4.1.2",
-    "mocha": "4.1.0",
-    "nyc": "11.4.1",
-    "ts-node": "4.1.0"
+    "mocha": "^5.2.0",
+    "nyc": "^11.8.0",
+    "ts-node": "^6.0.3"
   },
   "nyc": {
     "include": [
-      "**"
+      "src/**"
     ],
     "reporter": [
+      "text-summary",
       "html"
-    ],
-    "exclude": [
-      "*.d.ts",
-      "test/**"
     ],
     "extension": [
       ".ts"
     ],
     "require": [
       "ts-node/register"
-    ]
+    ],
+    "sourceMap": true,
+    "instrument": true
   }
 }
