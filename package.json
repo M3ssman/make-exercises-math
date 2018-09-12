@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "test": "nyc mocha --full-trace --bail test/**/*.spec.ts",
-    "pretest": "(find test/ -name '*.js*' -or -name '*.d.ts' | xargs rm && find test/ -name '*.js*' -or -name '*.d.ts' | xargs rm) || true",
+    "pretest": "(find src/ -name '*.js*' -or -name '*.d.ts' | xargs rm && find test/ -name '*.js*' -or -name '*.d.ts' | xargs rm) || true",
     "mocha": "./node_modules/.bin/mocha --reporter list ./test/*.js",
     "prepare": "tsc -d -p ."
   },
