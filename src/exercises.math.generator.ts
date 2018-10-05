@@ -1,11 +1,11 @@
 // import { MathBaseOption } from './math.base-option';
-import { NumConstraint } from './exercises.math';
+import { Constraint } from './exercises.math';
 import {
     Expression,
     ExtensionExpression,
     ExtensionType,
-    ExerciseMath,
-    ExerciseMathImpl
+    Fraction,
+    MixedNumeral
 } from './exercises.math';
 
 /**
@@ -17,18 +17,19 @@ import {
  */
 export function generateExpression(
     operations: ((x: number, y: number) => number)[],
-    operandsConstraints: NumConstraint[],
-    resultConstraints: NumConstraint): Expression {
+    operandsConstraints: Constraint[],
+    resultConstraints: Constraint): Expression {
 
-    let x = 0, y = 0, r = 0, operands = [], expression: Expression = {
+    let x ; 
+    let y ;
+    let r ; 
+    let expression: Expression = {
         operands: [], operations: [], value: 0
     };
     let xConstr, yConstr;
-    let nr_ok = false, r_ok = true, all_again = true;
+    let nr_ok = false, r_ok = true, not_finished = true;
 
-    let n = 1;
     do {
-
         // get first two operand constraints, if any, to compute f(x,y)
         if (operandsConstraints !== undefined && operandsConstraints[0]) {
             xConstr = operandsConstraints[0];
@@ -43,7 +44,7 @@ export function generateExpression(
         r = (operations[0])(x, y);
 
         // build expression
-        expression.operands.push(x, y);
+        (<number[]>expression.operands).push(x, y);
         expression.operations.push(operations[0].name);
 
         // with more than 1 operation do
@@ -53,7 +54,7 @@ export function generateExpression(
                     yConstr = operandsConstraints[a];
                 }
                 y = _getNumber(yConstr);
-                expression.operands.push(y);
+                (<number[]>expression.operands).push(y);
 
                 nr_ok = __holdXYoperandsConstraints(r, y, undefined, yConstr);
                 r = (operations[o])(r, y);
@@ -64,27 +65,23 @@ export function generateExpression(
         expression.value = r;
 
         // check result constraint
-        const r_const: NumConstraint = resultConstraints;
+        const r_const: Constraint = resultConstraints;
         if (r_const) {
             r_ok = __holdResultConstraints(r, r_const)
         }
         // check operandConstraints
         if (nr_ok && r_ok) {
-            all_again = false;
+            not_finished = false;
         } else {
             expression.operands = [];
             expression.operations = [];
-            n++;
         }
 
-    } while (all_again);
-    // if (console) {
-    //     console.log('needed ' + n + ' tries to calculate ' + JSON.stringify(expression));
-    // }
+    } while (not_finished);
     return expression;
 }
 
-function __holdXYoperandsConstraints(x: number, y: number, xConstr: NumConstraint, yConstr: NumConstraint): boolean {
+function __holdXYoperandsConstraints(x: number, y: number, xConstr: Constraint, yConstr: Constraint): boolean {
     if (xConstr && xConstr.greaterThanIndex) {
         return x > y;
     } else if (yConstr && yConstr.greaterThanIndex) {
@@ -93,11 +90,11 @@ function __holdXYoperandsConstraints(x: number, y: number, xConstr: NumConstrain
     return true;
 }
 
-function __holdResultConstraints(r: number, constraint: NumConstraint): boolean {
+function __holdResultConstraints(r: number, constraint: Constraint): boolean {
     if (constraint.multipleOf) {
         return (r % constraint.multipleOf) === 0;
-    } else if (constraint.range) {
-        const cr = constraint.range;
+    } else if (constraint.rangeN) {
+        const cr = constraint.rangeN;
         if (cr.min) {
             return r >= cr.min && r <= cr.max;
         }
@@ -106,18 +103,21 @@ function __holdResultConstraints(r: number, constraint: NumConstraint): boolean 
     return true;
 }
 
-function _getNumber(constraint?: NumConstraint): number {
-    let result = 0;
+function  _getNumber(constraint?: Constraint): number | [number, number] {
+    let result;
 
     // sanitize
     if (constraint === undefined) {
-        return __generateNumber(100, 1);
+        return __generateN(100, 1).next().value;
     }
 
-    if (constraint.range) {
-        const range = constraint.range;
+    if (constraint.rangeN) {
         do {
-            result = __generateNumber(range.max, range.min);
+            result = __generateN(constraint.rangeN.max, constraint.rangeN.min).next().value;
+        } while (!__checkSingleConstraint(result, constraint));
+    } else if(constraint.rangeQ) {
+        do {
+            result = __generateQ(constraint.rangeQ.max, constraint.rangeQ.min).next().value;
         } while (!__checkSingleConstraint(result, constraint));
     } else if (constraint.exactMatchOf) {
         return constraint.exactMatchOf;
@@ -125,18 +125,25 @@ function _getNumber(constraint?: NumConstraint): number {
     return result;
 }
 
-function __checkSingleConstraint(n: number, constraint: NumConstraint): boolean {
+function __checkSingleConstraint(n: number, constraint: Constraint): boolean {
     if (constraint.multipleOf) {
         return (n % constraint.multipleOf) === 0;
     }
     return true;
 }
 
-function __generateNumber(to: number, from?: number): number {
+function * __generateN(to: number, from?: number): IterableIterator<number> {
     if (from) {
-        return to - Math.ceil(Math.random() * (to - from));
+        yield to - Math.ceil(Math.random() * (to - from));
     }
-    return Math.ceil(Math.random() * to);
+    yield Math.ceil(Math.random() * to);
+}
+
+function * __generateQ(to: [number,number], from: [number,number]) : IterableIterator<[number,number]> {
+    if(from) {
+        yield [Math.ceil(Math.random() * (to[0] - from[0])), Math.ceil(Math.random() * (to[1] - from[1]))];
+    }
+    yield [Math.ceil(Math.random() * to[0]), Math.ceil(Math.random() * to[1])];
 }
 
 /**
@@ -145,346 +152,21 @@ function __generateNumber(to: number, from?: number): number {
  * 
  * @param constraints 
  */
-export function* generateDivisionWithRest(constraints?: NumConstraint[]): IterableIterator<Expression> {
+export function* generateDivisionWithRest(constraints?: Constraint[]): IterableIterator<Expression> {
     // generator loop
     while (true) {
-        const constrDividend = constraints[0];
-        const constrDivisor = constraints[1];
-        const dividend = __generateNumber(constrDividend.range.max, constrDividend.range.min);
-        const divisor = __generateNumber(constrDivisor.range.max, constrDivisor.range.min);
-        const divModulo = dividend % divisor;
-        const val = (dividend - divModulo) / divisor;
+        const c1 = constraints[0];
+        const c2 = constraints[1];
+        const dividend = __generateN(c1.rangeN.max, c1.rangeN.min).next().value;
+        const divisor = __generateN(c2.rangeN.max, c2.rangeN.min).next().value;
+        const divModulo = <number>dividend % <number>divisor;
+        const val = (<number>dividend - divModulo) / <number>divisor;
         const vals = [val];
         if (divModulo !== 0) {
             vals.push(divModulo);
         }
 
         // yield expression
-        yield { operands: [dividend, divisor], operations: ['div'], value: vals };
+        yield { operands: [<number>dividend, <number>divisor], operations: ['div'], value: <number[]>vals };
     }
-}
-
-/** 
- * 
- * Declare Interface for Extension Functions
- * 
-*/
-export interface GenerateExtensionsFunc {
-    (expr: Expression): ExtensionExpression[];
-}
-
-export function generateExtensionsDefault(expr: Expression): ExtensionExpression[] {
-    const ext: ExtensionExpression[] = [];
-    if (expr.operands) {
-        const steps = [];
-        expr.operands.reduce((p, c, i) => {
-            if (expr.operations[i] && expr.operations[i] === '-') {
-                p = p - c;
-            } else {
-                p = p + c;
-            }
-            steps.push(p);
-            return p;
-        });
-        ext.push({ carry: steps, extensionType: ExtensionType.DEFAULT, value: _decompose_digit(<number>expr.value) });
-    }
-    return ext;
-}
-
-export function generateExtensionsCarryAdd(expr: Expression): ExtensionExpression[] {
-    const ext: ExtensionExpression[] = [];
-    const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
-    const carry = calculateCarry(_invert(operandsMatrix), _addValueFunc, _addCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, extensionType: ExtensionType.ADD_CARRY, value: _decompose_digit(<number>expr.value) });
-    return ext;
-}
-
-function _addCarryFunc(row: number[], value: number): number {
-    if (value >= 10) {
-        return Math.floor(value / 10);
-    } else {
-        return 0;
-    }
-}
-
-function _addValueFunc(row: number[], value: number): number {
-    return row.reduce((p, currentCarry) => p + currentCarry, value);
-}
-
-export function generateExtensionsCarrySub(expr: Expression): ExtensionExpression[] {
-    const ext: ExtensionExpression[] = [];
-    const operandsMatrix: number[][] = calculateOperandsMatrix(expr.operands);
-    const carry: number[] = calculateCarry(_invert(operandsMatrix), _subValFunc, _subCarryFunc);
-    ext.push({ operands: operandsMatrix, carry: carry, extensionType: ExtensionType.SUB_CARRY, value: _decompose_digit(<number>expr.value) });
-    return ext;
-}
-
-function _subValFunc(row: number[], carry: number): number {
-    return row[0] - (row[1] + carry);
-}
-function _subCarryFunc(row: number[], value: number): number {
-    return (row[0] >= row[1] - value) ? 0 : 1;
-}
-
-/**
- * 
- * Calculate Carry Array from provided Digit-Matrix with given Value and Carry Functions
- * 
- * @param m 
- * @param valueFunc 
- * @param carryFunc
- */
-function calculateCarry(m: number[][],
-    valueFunc: (row: number[], value: number) => number,
-    carryFunc: (row: number[], value: number) => number): number[] {
-    let s = [];
-    let currentCarry = 0;
-
-    for (let i = 0; i < m.length; i++) {
-        s.unshift(currentCarry);
-
-        let value = valueFunc(m[i], currentCarry);
-        if (currentCarry > 0) {
-            currentCarry = 0;
-        }
-
-        currentCarry = carryFunc(m[i], value);
-    }
-    return s;
-}
-
-function calculateOperandsMatrix(ops: number[]): number[][] {
-    let digit_tab = [];
-    // decompose integers
-    for (let i = 0; i < ops.length; i++) {
-        if (Number.isInteger(ops[i])) {
-            const decomposition = _decompose_digit(ops[i]);
-            const rev = decomposition.reverse();
-            digit_tab[i] = rev;
-        }
-    }
-
-    // normalize value Tab
-    const norm_tab = _normalize_digit_tab(digit_tab);
-    return norm_tab;
-}
-
-function _decompose_digit(z: number): number[] {
-    let a = z.toString();
-    let s = a.length;
-
-    const result: number[] = [];
-    for (let i = 0; i < s; i++) {
-        result[i] = Number.parseInt(a[i]);
-    }
-
-    return result;
-}
-
-function _normalize_digit_tab(dt: number[][]): number[][] {
-    // sort by number with max figures
-    const o = dt.sort((a: number[], divisor: number[]) => divisor.length - a.length);
-    // get max
-    const m = o[0].length;
-    // normalize
-    const n: number[][] = o.map(value => _normalize(value, m, true));
-    return n;
-}
-
-/**
- *  param value 
- * @param m 
- */
-function _normalize(vals: number[], m: number, left: boolean): number[] {
-    const d = m - vals.length;
-    if (d > 0) {
-        if (left) {
-            const n = vals.concat(new Array(d));
-            return n.fill(0, vals.length);
-        } else {
-            const m = new Array(d).fill(0);
-            return m.concat(vals);
-        }
-    } else {
-        return vals;
-    }
-}
-
-function _invert(ns: number[][]): number[][] {
-    const ms = [];
-    const dimRow = ns.length;
-    const dimCol = ns[0].length;
-    for (let mc = 0; mc < dimCol; mc++) {
-        let i = [];
-        for (let mr = 0; mr < dimRow; mr++) {
-            if (ns[mr] !== undefined && ns[mr][mc] !== undefined) {
-                i.push(ns[mr][mc]);
-            } else {
-                console.log('[WARN] invalid ns = ' + JSON.stringify(ns) + ' at mr = ' + mr + ', mc = ' + mc + ' !');
-            }
-        }
-        ms.push(i);
-    }
-    return ms;
-}
-
-/**
- * 
- * Generate Extensions for Multiplication with Carry
- * 
- * @param expr 
- */
-export function generateExtensionsCarryMult(expr: Expression): ExtensionExpression[] {
-
-    const a: number = expr.operands[0];
-    const factor: number[] = _enhance(_decompose_digit(expr.operands[1]).reverse());
-    const ext: ExtensionExpression[] = generateMultMatrizies(factor, a, expr);
-
-    // requires aggregation stage since factor divisor is supposed to be at least 2-digit
-    if (factor.length > 1) {
-        const vstmp: number[][] = ext.map(e => e.value);
-        const max: number = vstmp.map(v => v.length).reduce((p, c) => p > c ? p : c);
-        const vsnorm: number[][] = vstmp.map(r => _normalize(r, max, false));
-
-        // critical since plain reverse() operates on reference level!
-        const vsrev = vsnorm.map(v => [].concat(v).reverse());
-        const vsrevinvert: number[][] = _invert(vsrev);
-        const carry = calculateCarry(vsrevinvert, _addValueFunc, _addCarryFunc);
-        ext.push({ operands: vsnorm, carry: carry, extensionType: ExtensionType.DIV, value: _decompose_digit(<number>expr.value) });
-    }
-    return ext;
-}
-
-function _enhance(es: number[]): number[] {
-    return es.map((v, i) => v * Math.pow(10, i));
-}
-
-function generateMultMatrizies(divisor: number[], a: number, expr: Expression) {
-    const ext: ExtensionExpression[] = [];
-    for (let g = 0; g < divisor.length; g++) {
-        const operandsMatrix: number[][] = calculateMultOperandsMatrix(a, divisor[g]);
-        const invertedMatrix: number[][] = _invert(operandsMatrix);
-        const revertedMatrix: number[][] = [].concat(invertedMatrix).reverse();
-        const result: ExtensionExpression = { operands: operandsMatrix, extensionType: ExtensionType.MULT_MULT, value: _decompose_digit(<number>expr.value) };
-        const c: number[] = calculateCarry(revertedMatrix, _addValueFunc, _addCarryFunc);
-
-        invertedMatrix.forEach((row, i) => row.push(c[i]));
-
-        // sum matrix
-        const v: number[] = invertedMatrix.map(row => (_getLastDigit(row)));
-
-        // remove trailing '0'
-        let i = 0;
-        while (v[i] === 0) {
-            v.shift();
-        }
-        ext.push({ operands: operandsMatrix, extensionType: ExtensionType.MULT_MULT, carry: c, value: v });
-    }
-    return ext;
-}
-
-function _getLastDigit(row: number[]): number {
-    const r = row.reduce((p, c) => p + c);
-    if (r > 9) {
-        return r % 10;
-    } else {
-        return r;
-    }
-}
-
-function calculateMultOperandsMatrix(a: number, divisor: number): number[][] {
-    const as: number[] = _decompose_digit(a).reverse();
-    const m = as.map((v, i) => divisor * v * Math.pow(10, i)).map(x => _decompose_digit(x));
-    const max: number = m.map(os => os.length).reduce((p, c) => p < c ? c : p);
-    const normM = m.map(_os => _normalize(_os, max, false));
-    return normM;
-}
-
-
-/**
- * 
- * API Entry for Division Extensions
- * 
- * @param expr 
- */
-export function generateExtensionsDiv(expr: Expression): ExtensionExpression[] {
-    const result: ExtensionExpression[] = [];
-    const as: number[] = _decompose_digit(expr.operands[0]);
-    let dividend = 0;
-    const divisor = expr.operands[1];
-    let i = 0;
-    let v = 0;
-
-    // corner case issue: dividend is zero
-    let firstRun = true;
-
-    while (i < as.length) {
-        let asRest: number[] = as.slice(i);
-        // if we have a value, prepend
-        if (v > 0) {
-            asRest.unshift(v);
-        }
-
-        // corner-case: don't do this when dividend is actually zero
-        if (dividend === 0 && !firstRun) {
-            console.log('[WARN] - dividend considered ' + dividend+ ' (divisor: '+divisor+')');
-            i++;
-        } else {
-            // find start
-            let j = 0
-            while (dividend < divisor) {
-                dividend = _compose_digit(asRest, j);
-                j++;
-            }
-            i = i + j;
-        }
-
-        let q: number = _how_often(dividend, divisor);
-        let s = divisor * q;
-        v = dividend - s;
-        let subExtension: ExtensionExpression = createExtension(dividend, s, v);
-        result.push(subExtension);
-        
-        // prepare next iteration
-        dividend = v;
-        firstRun = false;
-        asRest = [];
-    }
-
-    return result;
-}
-
-function createExtension(d: number, s: number, v: number) {
-    const decomD = _decompose_digit(d);
-    const decomS = _decompose_digit(s);
-    const decomV = _decompose_digit(v);
-    let normalizedValue = _normalize(decomV, decomD.length, false);
-
-    let subExtension: ExtensionExpression = { operands: [decomD, decomS], extensionType: ExtensionType.DIV, value: normalizedValue };
-    let inExpr: Expression = { operands: [d, s], operations: ['sub'], value: v };
-    let sub = generateExtensionsCarrySub(inExpr)[0];
-    if (sub.carry && sub.carry.some(j => j !== 0)) {
-        subExtension.carry = sub.carry;
-    }
-    return subExtension;
-}
-
-/**
- * 
- * Compose Number up to the m-th index from ns as sum from 0 to m using ns.c * 10^(m-ns.i)
- * 
- * @param ns 
- * @param m 
- */
-export function _compose_digit(ns: number[], m: number): number {
-    return ns.reduce((p, c, i) => (i <= m) ? p + c * Math.pow(10, m - i) : p, 0);
-}
-
-export function _how_often(a: number, b: number): number {
-    let i = 0;
-    while (a >= b) {
-        a = a - b;
-        i++;
-    }
-    return i;
 }

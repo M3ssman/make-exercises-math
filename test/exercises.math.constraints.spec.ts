@@ -1,22 +1,27 @@
-import { assert, expect } from 'chai';
-import { ExerciseMath, ExerciseType, Expression } from '../src/exercises.math';
+import { assert } from 'chai';
+import { 
+    Exercise, 
+    ExerciseSet,
+    Options, 
+    Expression 
+} from '../src/exercises.math';
 import { makeSet } from '../src/exercises.math';
 
 
 describe('Constraints', function () {
     it('should generate Exercise with 25<=x<=50, y=24, z<=18 and result x10', function (done) {
-        const type: ExerciseType = {
-            quantity: 1, level: 2, operations: ['add', 'sub'],
+        const type: Options = {
+            quantity: 1, level: 2, operations: ['add', 'sub'], set: "N",
             operands: [
-                { range: { min: 25, max: 50 } },
+                { rangeN: { min: 25, max: 50 } },
                 { exactMatchOf: 24 },
-                { range: { max: 18 } }
+                { rangeN: { max: 18 } }
             ],
             result: { multipleOf: 10 }
         };
 
-        makeSet([type]).then((exercises: ExerciseMath[][]) => {
-            let ex: ExerciseMath = exercises[0][0];
+        makeSet([type]).then((sets: ExerciseSet[]) => {
+            let ex: Exercise = sets[0].exercises[0];
             const x = (<Expression>ex.expression).operands[0];
             const y = (<Expression>ex.expression).operands[1];
             const z = (<Expression>ex.expression).operands[2];
@@ -35,16 +40,16 @@ describe('Constraints', function () {
     });
 
     it('should generate Exercise with x_1 > x_2', function (done) {
-        const type: ExerciseType = {
-            quantity: 1, level: 2, operations: ['add'],
+        const type: Options = {
+            quantity: 1, level: 2, operations: ['add'], set:"N",
             operands: [
-                { range: { min: 25, max: 50 }, greaterThanIndex:1 },
+                { rangeN: { min: 25, max: 50 }, greaterThanIndex:1 },
                 { exactMatchOf: 47 }
             ]
         };
 
-        makeSet([type]).then((exercises: ExerciseMath[][]) => {
-            let ex: ExerciseMath = exercises[0][0];
+        makeSet([type]).then((sets: ExerciseSet[]) => {
+            let ex: Exercise = sets[0].exercises[0];
             const x = (<Expression>ex.expression).operands[0];
             const y = (<Expression>ex.expression).operands[1];
             const z = (<Expression>ex.expression).operands[2];

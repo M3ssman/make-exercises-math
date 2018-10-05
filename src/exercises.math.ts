@@ -1,448 +1,243 @@
 import {
     generateExpression,
     generateDivisionWithRest,
-    GenerateExtensionsFunc,
-    generateExtensionsDefault,
-    generateExtensionsCarryAdd,
-    generateExtensionsCarrySub,
-    generateExtensionsCarryMult,
-    generateExtensionsDiv
 } from './exercises.math.generator';
 import {
-    funcMap, mult,
+    funcMap,
     Renderer,
-    StringRenderer,
-    SimpleExpressionResultRenderer,
-    AdditionWithCarryExpressionRenderer,
-    SubtractionWithCarryExpressionRenderer,
-    SimpleMultiplicationExtensionRenderer,
-    DivisionExtensionRenderer
+    renderDefault,
+    renderExtensionsAdditionCarry,
+    renderExtensionsSubtractionCarry,
+    renderExtensionsMultiplication,
+    renderExtensionsDivEven
 } from './exercises.math.renderer';
-
-/**
- * Numeric Bounds
- */
-export class NumBounds {
-    constructor(public max: number, public min?: number) { }
-}
-
-/**
- * Basic Numerical Ranges
- */
-export const rangeN5N1 = new NumBounds(5, 1)
-export const rangeN10 = new NumBounds(10);
-export const rangeN20 = new NumBounds(20);
-export const rangeN25N5 = new NumBounds(25, 5);
-export const rangeN50 = new NumBounds(50);
-export const rangeN50N10 = new NumBounds(50, 10);
-export const rangeN80N10 = new NumBounds(80, 10);
-export const rangeN99N10 = new NumBounds(99, 10);
-export const rangeN100 = new NumBounds(100);
+import {
+    Extensioneer,
+    extendOneLine,
+    extendAddCarry,
+    extendSubCarry,
+    extendMultCarry,
+    extendDivEven,
+    extendAddFraction
+} from './exercises.math.extensions';
+import {
+    mask
+} from './exercises.math.maskeer';
 
 /**
  * 
- * Numerical Constraints
+ * Define Numerical Sets and Util n-Tuples
  * 
  */
-export class NumConstraint {
-    greaterThanIndex?: number;
-    exactMatchOf?: number;
-    range?: NumBounds;
-    multipleOf?: number;
-    toString(): string {
-        return JSON.stringify(this);
-    }
-}
-
-/**
- * Defines a single Exercise of Addition, etc.
- */
+export type N = number[];
+export type Z = N;
+export type Q = [N, N];
+export type Fraction = [number, number];
+export type MixedNumeral = [number, Fraction];
+export type Set = "Q" | "Z" | "N";
 export type Operation = "add" | "sub" | "mult" | "div";
 
-export interface ExerciseType {
+/**
+ * What kind of Extension to generate
+ */
+export type ExtensionType =
+    'SINGLE_LINE'
+    | 'ADD_CARRY'
+    | 'SUB_CARRY'
+    | 'MULT_SINGLE'
+    | 'MULT_MULT'
+    | 'DIV_EVEN'
+    | 'ADD_FRACTION'
+
+export type MaskType =
+    'ALL'
+    | 'NON_ZERO'
+
+export interface Range {
+    max: number;
+    min?: number;
+}
+export interface RangeQ {
+    max: [number, number];
+    min?: [number, number];
+}
+
+export interface Constraint {
+    greaterThanIndex?: number;
+    exactMatchOf?: number;
+    rangeN?: Range;
+    rangeZ?: Range;
+    rangeQ?: RangeQ;
+    multipleOf?: number;
+}
+
+export interface Options {
+    set: Set;
     operations: Operation[];
-    extensionType?: ExtensionType;
+    label?: string;
+    extension?: ExtensionType;
+    maskeer?: MaskType;
     quantity?: number;
     level?: number;
-    operands?: NumConstraint[];
-    result?: NumConstraint;
+    operands?: Constraint[];
+    result?: Constraint;
+}
+
+export interface Properties {
+    set: Set;
+    operations: Operation[];
+    label?: string;
+    extension?: ExtensionType;
+    maskeer?: MaskType;
+    level?: number;
 }
 
 export interface Expression {
-    operands: number[];
+    operands: number[] | Fraction[];
     operations: string[];
-    value: number | number[];
+    value: number | number[] | Fraction;
 }
-
-export enum ExtensionType {
-    DEFAULT, ADD_CARRY, SUB_CARRY, MULT_SINGLE, MULT_MULT, DIV
-};
 
 export interface ExtensionExpression {
-    extensionType: ExtensionType;
-    operands?: number[][];
+    type: ExtensionType
+    extensions: Extension[]
+}
+
+export interface Extension {
+    operands?: number[][] | Fraction[];
     carry?: number[];
-    value: number[];
+    value: number[] | Fraction;
+}
+
+export interface Exercise {
+    expression?: Expression;
+    rendered?: string[];
+    extension?: ExtensionExpression;
+}
+
+export interface ExerciseSet {
+    exercises: Exercise[];
+    properties: Properties;
+}
+
+const extensioneerMap: { [key: string]: Extensioneer } = {
+    'SINGLE_LINE': extendOneLine,
+    'ADD_CARRY': extendAddCarry,
+    'DIV_EVEN': extendDivEven,
+    'SUB_CARRY': extendSubCarry,
+    'MULT_MULT': extendMultCarry,
+    'ADD_FRACTION': extendAddFraction
+}
+
+const rendererMap: { [key: string]: Renderer } = {
+    'DIV_EVEN': renderExtensionsDivEven,
+    'ADD_CARRY': renderExtensionsAdditionCarry,
+    'SUB_CARRY': renderExtensionsSubtractionCarry,
+    'MULT_MULT': renderExtensionsMultiplication,
+    'SINGLE_LINE': renderDefault
 }
 
 /**
- * Exercise Math Declarations
+ * SINGLE_LINE Options
  */
-export interface ExerciseMath {
-    rendered: string[];
-    expression: Expression;
-    extensions: ExtensionExpression[];
-    get(): string[];
+const SINGLE_LINEAdd: Options = {
+    quantity: 12,
+    level: 1,
+    set: "N",
+    operations: ['add'],
+    operands: [
+        { rangeN: { max: 20 }, greaterThanIndex: 1 },
+        { rangeN: { max: 20 } }
+    ]
 }
-export class ExerciseMathImpl implements ExerciseMath {
-    rendered = [];
-    extensions = [];
-    constructor(public expression: Expression, public renderer: Renderer,
-        public extensionFunc: GenerateExtensionsFunc) {
-        if (extensionFunc) {
-            this.extensions = this.extensionFunc(this.expression);
-        }
-    }
-
-    /** 
-     * 
-     * Get Result as rendered String Array
-     * 
-    */
-    get() {
-        if (this.rendered.length === 0) {
-            if (this.renderer['toMaskedString'] !== undefined) {
-                this.rendered.push((<StringRenderer>this.renderer).toMaskedString(this.expression, '_'));
-            }
-            if (this.renderer['renderExtensions'] !== undefined) {
-                this.rendered = this.rendered.concat((<StringRenderer>this.renderer).renderExtensions(this));
-            }
-        }
-        return this.rendered;
-    }
-}
-
 /**
  * 
- * Create Expression Level 1
+ * Main API Entry
  * 
- * @param exerciseTypes 
+ * @param options 
  */
-export function makeSet(exerciseTypes?: ExerciseType[]): Promise<ExerciseMath[][]> {
+export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     return new Promise((resolve, reject) => {
-        const exercises: ExerciseMath[][] = [];
-        const optionsIn = exerciseTypes ? exerciseTypes : [defaultAdd];
-        let numberOfSets: number = optionsIn.length;
-
-        for (let a = 0; a < numberOfSets; a++) {
-            const exercise: ExerciseMath[] = [];
-            let e: ExerciseType = optionsIn[a];
-
-            for (let i = 0; i < e.quantity; i++) {
-                // get constraints for operands and result
-                const constraints: NumConstraint[] = e.operands;
-                const resultConstraint: NumConstraint = e.result;
-                const renderer: Renderer = determineRenderer(e);
-                const extensionGenerator: GenerateExtensionsFunc = determineExtensionGenerator(e);
-
-                // get operations
-                let functs: ((a: number, b: number) => number)[] = [];
-                // all but div
-                e.operations.filter(op => !(op === 'div')).map(op => functs.push(funcMap[op].func));
-                if (functs.length === 0) {
-                    //console.warn('[WARN] undefined functs from ExerciseType: ' + JSON.stringify(e)+ ' assuming division!');
-                } else {
-                    let exp: Expression = generateExpression(functs, constraints, resultConstraint);
-                    const em: ExerciseMath = new ExerciseMathImpl(exp, renderer, extensionGenerator);
-                    exercise.push(em);
-                }
-            }
-            exercises.push(exercise);
-
-            // handle divisionWithRest
-            for (let i = 0; i < e.quantity; i++) {
-                if (e.operations[0] === 'div') {
-                    if (e.extensionType === ExtensionType.DIV) {
-                        let multFunc: ((a: number, b: number) => number) = funcMap['mult'].func;
-                        let _exp: Expression = generateExpression([multFunc], e.operands, e.result);
-                        const exp: Expression = {operations:['div'], value: _exp.operands[0], operands: [<number>_exp.value, _exp.operands[1]]};
-                        const em: ExerciseMath = new ExerciseMathImpl(exp, new DivisionExtensionRenderer(), generateExtensionsDiv)
-                        exercise.push(em);
-                    } else {
-                        const divExprs: Expression[] = genDivWithRest(e.operands);
-                        const renderer: Renderer = determineRenderer(e);
-                        for (let j = 0; j < divExprs.length; j++) {
-                            exercise.push(new ExerciseMathImpl(divExprs[j], renderer, generateExtensionsDefault));
-                        }
+        const options = (opts && opts.length > 0) ? opts : [SINGLE_LINEAdd];
+        const excWithoutDiv: ExerciseSet[] = options
+            .filter(option => option.operations.indexOf("div") < 0)
+            .map(option => {
+                const _exercises: Exercise[] = [];
+                //const _props : Properties = {set : "N", level: option.level, operations: option.operations}; 
+                const _props: Properties = option;
+                const _q = option.quantity || 12;
+                for (let i = 0; i < _q; i++) {
+                    const functs: ((a: number, b: number) => number)[] = option.operations.map(operation => funcMap[operation].func);
+                    if (functs.length > 0) {
+                        let exp: Expression = generateExpression(functs, option.operands, option.result);
+                        _exercises.push({ expression: exp, rendered: [] });
                     }
                 }
-            }            
-        }
-        if (exercises.length === 0) {
-            reject('Unable to create Exercises: null or empty!');
+                return { exercises: _exercises, properties: _props };
+            });
+
+        const excDiv: ExerciseSet[] = options
+            .filter(option => option.operations.indexOf("div") > -1)
+            .map(option => {
+                const _exercise: Exercise[] = [];
+                const _props: Properties = { set: "N", level: option.level, operations: option.operations };
+                const _q = option.quantity || 12;
+                if (option.extension) {
+                    _props.extension = option.extension;
+                }
+                for (let i = 0; i < _q; i++) {
+                    if (option.extension === 'DIV_EVEN') {
+                        let multFunc: ((a: number, b: number) => number) = funcMap['mult'].func;
+                        let _exp: Expression = generateExpression([multFunc], option.operands, option.result);
+                        const exp: Expression = { operations: ['div'], value: _exp.operands[0], operands: <number[]>[<number>_exp.value, _exp.operands[1]] };
+                        _exercise.push({ expression: exp, rendered: [] });
+                    } else {
+                        const constrs: Constraint[] = [{ rangeN: { max: 100, min: 10 } }, { rangeN: { max: 12, min: 2 } }];
+                        const divExprs: Expression = generateDivisionWithRest(constrs).next().value;
+                        _exercise.push({ expression: divExprs, rendered: [] });
+                    }
+                }
+                return { exercises: _exercise, properties: _props };
+            });
+
+        const _exercises: ExerciseSet[] = excWithoutDiv.concat(excDiv);
+        if (_exercises.length === 0) {
+            reject('Unable to create basic Exercises with ' + JSON.stringify(opts) + ' !');
         } else {
+            const exercises = _exercises
+                .map(exerciseSet => {
+                    let extensionType: ExtensionType = exerciseSet.properties.extension
+                    if (!extensionType) {
+                        extensionType = 'SINGLE_LINE'
+                    }
+                    const extFunc = extensioneerMap[extensionType]
+                    if (extFunc) {
+                        exerciseSet.exercises.map(exercise => extFunc(exercise))
+                    }
+                    return exerciseSet;
+                })
+                .map(exerciseSet => {
+                    let extensionType: ExtensionType = exerciseSet.properties.extension
+                    if (!extensionType) {
+                        extensionType = 'SINGLE_LINE'
+                    }
+                    const rendFunc = rendererMap[extensionType]
+                    if (rendFunc) {
+                        exerciseSet.exercises = exerciseSet.exercises
+                            .map(exercise => rendFunc(exercise));
+                    }
+                    return exerciseSet;
+                })
+                .map(exerciseSet => {
+                    let maskType: MaskType = exerciseSet.properties.maskeer
+                    if (!maskType) {
+                        maskType = 'ALL'
+                    }
+                    exerciseSet.properties.maskeer = maskType
+                    exerciseSet.exercises = exerciseSet.exercises.map(e => mask(e, maskType))
+                    return exerciseSet
+                });
             resolve(exercises);
         }
     });
-}
-
-function determineRenderer(e: ExerciseType): Renderer {
-    if (e.level === 2) {
-        return new AdditionWithCarryExpressionRenderer();
-    } else if (e.level === 3) {
-        return new SubtractionWithCarryExpressionRenderer();
-    } else if (e.level === 4) {
-        return new SimpleMultiplicationExtensionRenderer();
-    } else if (e.level === 5 || e.extensionType === ExtensionType.DIV) {
-        return new DivisionExtensionRenderer();
-    }
-    return new SimpleExpressionResultRenderer();
-}
-
-function determineExtensionGenerator(ex: ExerciseType): GenerateExtensionsFunc {
-    if (ex.level === 2) {
-        return generateExtensionsCarryAdd;
-    } else if (ex.level === 3) {
-        return generateExtensionsCarrySub;
-    } else if (ex.level === 4) {
-        return generateExtensionsCarryMult;
-    }
-    return generateExtensionsDefault;
-}
-
-/**
- * Default ExerciseType
- */
-export const defaultAdd: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['add'],
-    operands: [
-        { range: rangeN20, greaterThanIndex: 1 },
-        { range: rangeN20 }
-    ]
-}
-
-/**
- * More ExerciseTypes
- */
-export const addN50N10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['add'],
-    operands: [
-        { range: rangeN80N10, greaterThanIndex: 1 },
-        { range: rangeN10 }
-    ]
-};
-export const addN50N25Nof10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['add'],
-    operands: [
-        { range: rangeN50N10, greaterThanIndex: 1 },
-        { range: rangeN25N5 }
-    ],
-    result: { multipleOf: 10 }
-};
-export const addN50N19: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['add'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN50N10 },
-        { range: rangeN20 }
-    ]
-};
-
-export const subN99N10Nof10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['sub'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN10 }
-    ],
-    result: { multipleOf: 10 }
-};
-export const subN50N10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['sub'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN10 }
-    ]
-};
-export const subN99N19: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['sub'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN20 }
-    ]
-};
-export const subN99N19Nof10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['sub'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN99N10 },
-        { range: rangeN20 }
-    ],
-    result: { multipleOf: 10 }
-};
-
-export const multN10N10: ExerciseType = {
-    quantity: 12,
-    level: 1,
-    operations: ['mult'],
-    operands: [
-        { greaterThanIndex: 1, range: rangeN10 },
-        { range: rangeN10 }
-    ]
-};
-
-export const add_add_: ExerciseType = {
-    quantity: 12, level: 1,
-    operations: ['add', 'add'],
-    operands: [
-        { range: rangeN100 },
-        { range: rangeN50N10 },
-        { range: rangeN25N5 }
-    ]
-};
-
-export const addN50N25subN20: ExerciseType = {
-    quantity: 12, level: 1,
-    operations: ['add', 'sub'],
-    operands: [
-        { range: rangeN50N10 },
-        { range: rangeN25N5 },
-        { range: rangeN20 }
-    ]
-};
-
-export const divN100WithRest: ExerciseType = {
-    operations: ['div']
-};
-
-export const add_add_carry: ExerciseType = {
-    quantity: 6,
-    level: 2,
-    operations: ['add', 'add'],
-    operands: [
-        { range: { min: 500, max: 9999 } },
-        { range: { max: 1500 } },
-        { range: { max: 100 } }
-    ]
-};
-
-export const sub_carry: ExerciseType = {
-    quantity: 6,
-    level: 3,
-    operations: ['sub'],
-    operands: [
-        { range: { min: 1500, max: 9999 }, greaterThanIndex: 1 },
-        { range: { max: 1500 } }
-    ]
-};
-
-/** 
- * 
- * Default for multiplication with f_1 {1000 .. 9999} and f_2 { 1 .. 10}
- * 
-*/
-export const mult_N999_N9: ExerciseType = {
-    quantity: 6,
-    level: 4,
-    operations: ['mult'],
-    operands: [
-        { range: { min: 100, max: 999 } },
-        { range: { min: 1, max: 10 } }
-    ]
-};
-
-export const mult_N999_N99: ExerciseType = {
-    quantity: 3,
-    level: 4,
-    operations: ['mult'],
-    operands: [
-        { range: { min: 100, max: 999 } },
-        { range: { min: 10, max: 99 } }
-    ]
-};
-
-export const mult_N999_N999: ExerciseType = {
-    quantity: 3,
-    level: 4,
-    operations: ['mult'],
-    operands: [
-        { range: { min: 100, max: 999 } },
-        { range: { min: 100, max: 999 } }
-    ]
-};
-
-export const div_even: ExerciseType = {
-    quantity: 3,
-    level: 4,
-    extensionType: ExtensionType.DIV,
-    operations: ['div'],
-    operands: [
-        { range: { min: 50, max: 99 } },
-        { range: { min: 2, max: 99 } },
-    ]
-};
-
-/**
- * 
- * @deprecated
- * 
- */
-export function multN10Nof2(): ExerciseMath {
-    return multN10ofX(2);
-}
-
-export function multN10Nof5(): ExerciseMath {
-    return multN10ofX(5);
-}
-
-export function multN10Nof10(): ExerciseMath {
-    return multN10ofX(10);
-}
-
-export function multN10ofX(x: number): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { exactMatchOf: x },
-        { range: rangeN10 }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
-}
-
-export function multR100(): ExerciseMath {
-    const constraints: NumConstraint[] = [
-        { range: rangeN20 },
-        { range: rangeN20 },
-        { range: rangeN100 }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMathImpl(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
-}
-
-
-
-/**
- * Generate Division Exercises with optional Rest
- */
-function genDivWithRest(constraints?: NumConstraint[], count?: number): Expression[] {
-    const constrs: NumConstraint[] = constraints || [{ range: { max: 100, min: 10 } }, { range: { max: 12, min: 2 } }];
-    const divIterator = generateDivisionWithRest(constrs);
-    const max = count || 12;
-    const exprs = [];
-    for (let i = 0; i < max; i++) {
-        exprs.push(divIterator.next().value);
-    }
-    return exprs;
 }

@@ -4,5 +4,6 @@ function __export(m) {
 }
 Object.defineProperty(exports, "__esModule", { value: true });
 __export(require("./src/exercises.math"));
+__export(require("./src/exercises.math.options"));
 __export(require("./src/exercises.math.renderer"));
 //# sourceMappingURL=index.js.map

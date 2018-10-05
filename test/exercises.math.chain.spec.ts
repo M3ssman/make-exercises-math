@@ -1,23 +1,25 @@
-import { assert, expect } from 'chai';
-import { ExerciseMath, ExerciseType } from '../src/exercises.math';
+import { assert } from 'chai';
+import { 
+    Exercise,
+    ExerciseSet, 
+    Options 
+} from '../src/exercises.math';
 import { makeSet } from '../src/exercises.math';
 
 
 describe('ChainOperators', function () {
     it('should generate 2 Exercises with 3 operands and 2x add', function (done) {
-        const opts: ExerciseType = {
-            quantity: 2, level: 1,
+        const opts: Options = {
+            quantity: 2, level: 1,set: "N",
             operations: ['add', 'add']
         };
-        makeSet([opts]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            for (let e = 0; e < exercises.length; e++) {
-                for (let f = 0; f < exercises[e].length; f++) {
-                    assert.equal(2, exercises[e].length);
-                    let ex: ExerciseMath = exercises[e][f];
-                    let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('+') > 0);
-                }
+        makeSet([opts]).then((set: ExerciseSet[]) => {
+            assert.equal(1, set.length);
+            assert.equal(2, set[0].exercises.length);
+            for (let f = 0; f < set[0].exercises.length; f++) {
+                let ex: Exercise = set[0].exercises[f];
+                let renderOut = ex.rendered[0];
+                assert.isTrue(renderOut.indexOf('+') > 0);
             }
             done();
         }).catch(err => {
@@ -29,26 +31,24 @@ describe('ChainOperators', function () {
     });
 
     it('should generate 2 Exercises with 3 operands, add and sub', function (done) {
-        const opts: ExerciseType = {
-            quantity: 2, level: 1,
+        const opts: Options = {
+            quantity: 2, level: 1,set: "N",
             operations: ['add', 'sub'],
             operands: [
-                { range: { min: 20, max: 50 } },
-                { range: { min: 10, max: 25 } },
-                { range: { max: 20 } }
+                { rangeN: { min: 20, max: 50 } },
+                { rangeN: { min: 10, max: 25 } },
+                { rangeN: { max: 20 } }
             ]
         };
 
-        makeSet([opts]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            for (let e = 0; e < exercises.length; e++) {
-                for (let f = 0; f < exercises[e].length; f++) {
-                    assert.equal(2, exercises[e].length);
-                    let ex: ExerciseMath = exercises[e][f];
-                    let renderOut = ex.get()[0];
-                    assert.isTrue(renderOut.indexOf('+') > 0);
-                    assert.isTrue(renderOut.indexOf('-') > 0);
-                }
+        makeSet([opts]).then((set: ExerciseSet[]) => {
+            assert.equal(1, set.length);
+            assert.equal(2, set[0].exercises.length);
+            for (let f = 0; f < set[0].exercises.length; f++) {
+                let ex: Exercise = set[0].exercises[f];
+                let renderOut = ex.rendered[0];
+                assert.isTrue(renderOut.indexOf('+') > 0);
+                assert.isTrue(renderOut.indexOf('-') > 0);
             }
             done();
         }).catch(err => {
@@ -60,20 +60,20 @@ describe('ChainOperators', function () {
     });
 
     it('should generate Exercise with 4x mult', function (done) {
-        const opts: ExerciseType = {
-            level: 1, quantity: 1,
+        const opts: Options = {
+            level: 1, quantity: 1,set: "N",
             operations: ['mult', 'mult', 'mult', 'mult'],
             operands: [
-                { range: { max: 5 } },
-                { range: { max: 4 } }
+                { rangeN: { max: 5 } },
+                { rangeN: { max: 4 } }
             ]
         };
 
         // act
-        makeSet([opts]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            let ex: ExerciseMath = exercises[0][0];
-            let renderOut = ex.get()[0];
+        makeSet([opts]).then((sets: ExerciseSet[]) => {
+            assert.equal(1, sets.length);
+            let ex: Exercise = sets[0].exercises[0];
+            let renderOut = ex.rendered[0];
             assert.isTrue(renderOut.split('*').length == 5, 'expect 5 parts of *, but found: ' + renderOut);
             done();
         }).catch(err => {

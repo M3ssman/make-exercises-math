@@ -1,92 +1,71 @@
-import { assert, expect } from 'chai';
-import { ExerciseMath, ExerciseType, div_even, ExtensionType } from '../src/exercises.math';
-import { makeSet, mult_N999_N9, mult_N999_N99, mult_N999_N999 } from '../src/exercises.math';
+import { assert } from 'chai';
+import { 
+    makeSet,
+    Exercise,
+    ExerciseSet,
+    Options, ExtensionType 
+} from '../src/exercises.math';
+import { 
+    div_even 
+} from '../src/exercises.math.options';
 
 /**
  * Multiplication
  */
-describe('Division without rest and their Extensions', function () {
-    it('should generate Division with Extensions for d_2 = 64 and q_0 = 64', function (done) {
-        const opts: ExerciseType = {
+describe('Division without rest API', function () {
+
+    it('bugfix test 627 : 11 = 57', async () => {
+        const opts: Options = {
             quantity: 1,
-            level: 4,
-            extensionType: ExtensionType.DIV,
+            level: 5,
+            set: "N",
+            extension: 'DIV_EVEN',
             operations: ['div'],
-            operands: [{ exactMatchOf: 64 }, { exactMatchOf: 64 }]
+            operands: [{ exactMatchOf: 57 }, { exactMatchOf: 11 }]
         };
-        makeSet([opts]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            const exercise = exercises[0][0];
-            assert.isNotNull(exercise.expression.value);
-            const actualExtensions = exercise.extensions;
-            assert.isNotEmpty(actualExtensions);
-            const actRendStrs: String[] = exercise.get();
-            assert.equal(6, actRendStrs.length);
-            assert.isTrue(actRendStrs[0].indexOf(':') > -1);
-            assert.equal('  4096  : 64 = 64', actRendStrs[0]);
-            assert.equal('  ___', actRendStrs[1]);
-            assert.equal('- _  ', actRendStrs[2]);
-            assert.equal('   ___', actRendStrs[3]);
-            assert.equal(' - ___', actRendStrs[4]);
-            assert.equal('     0', actRendStrs[5]);
-            done();
-        }).catch(err => {
-            if (console) {
-                console.log(err);
-            }
-            done(err);
-        });
+        const set = await makeSet([opts]);
+        assert.exists(set[0]);
+        const exercise = set[0].exercises[0];
+        assert.isNotNull(exercise.expression.value);
+        assert.equal(set[0].properties.extension, 'DIV_EVEN'); 
+        const actualExtensions = exercise.extension.extensions;
+        assert.isNotEmpty(actualExtensions);
+        assert.equal(actualExtensions.length, 2);
+        const actRendStrs: String[] = exercise.rendered;
+        assert.equal(5, actRendStrs.length);
     });
 
-    it('should generate 3 even divisions with d_2 in {50 .. 99} and q_0 {2..99}', function (done) {
-        makeSet([div_even]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            for (let e = 0; e < exercises.length; e++) {
-                assert.equal(exercises[e].length, 3);
-                for (let f = 0; f < exercises[e].length; f++) {
-                    const exercise = exercises[e][f];
-                    assert.isNotNull(exercise.expression.value);
-                    const actualExtensions = exercise.extensions;
-                    assert.isNotEmpty(actualExtensions);
-                    const actualRenderedStrings = exercise.get();
-                }
-            }
-            done();
-        }).catch(err => {
-            if (console) {
-                console.log(err);
-            }
-            done(err);
-        });
+    it('bugfix test 1012 : 4 = 253', async () => {
+        const opts: Options = {
+            quantity: 1,
+            level: 5,
+            set: "N",
+            extension: 'DIV_EVEN',
+            operations: ['div'],
+            operands: [{ exactMatchOf: 253 }, { exactMatchOf: 4 }]
+        };
+        const set = await makeSet([opts]);
+        assert.exists(set[0]);
+        const exercise = set[0].exercises[0];
+        assert.isNotNull(exercise.expression.value);
+        assert.equal(set[0].properties.extension, 'DIV_EVEN'); 
+        const actualExtensions = exercise.extension.extensions;
+        assert.isNotEmpty(actualExtensions);
+        assert.equal(actualExtensions.length, 3);
+        const actRendStrs: String[] = exercise.rendered;
+        assert.equal(7, actRendStrs.length);
+    });
+    
+    it('should generate 3 even divisions with d_2 in {50 .. 99} and q_0 {2..99}', async function () {
+        const sets = await makeSet([div_even])
+        assert.equal(1, sets.length);
+        assert.isTrue(sets[0].exercises.length > 2);
+        for (let f = 0; f < sets[0].exercises.length; f++) {
+            const exercise = sets[0].exercises[f];
+            assert.isNotNull(exercise.expression.value);
+            const actualExtensions = exercise.extension.extensions;
+            assert.isNotEmpty(actualExtensions);
+        }
     });
 
-    it('reression test to fix undefined state at inversion for d_2 = 70 and q_0 = 9', function (done) {
-        const opts: ExerciseType = {
-            quantity: 1,
-            level: 4,
-            extensionType: ExtensionType.DIV,
-            operations: ['div'],
-            operands: [{ exactMatchOf: 70 }, { exactMatchOf: 9 }]
-        };
-        makeSet([opts]).then((exercises: ExerciseMath[][]) => {
-            assert.equal(1, exercises.length);
-            const exercise = exercises[0][0];
-            assert.isNotNull(exercise.expression.value);
-            const actualExtensions = exercise.extensions;
-            assert.isNotEmpty(actualExtensions);
-            const actRendStrs: String[] = exercise.get();
-            assert.equal(5, actRendStrs.length);
-            assert.equal('  630  : 9 = 70', actRendStrs[0], 'failed: "" != '+ actRendStrs[0]);
-            assert.equal('- __', actRendStrs[1]);
-            assert.equal('   0', actRendStrs[2]);
-            assert.equal(' - 0', actRendStrs[3])
-            assert.equal('   ', actRendStrs[4])
-            done();
-        }).catch(err => {
-            if (console) {
-                console.log(err);
-            }
-            done(err);
-        });
-    });
 });
