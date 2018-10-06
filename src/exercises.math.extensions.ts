@@ -61,7 +61,7 @@ export function extendSubCarry(exercise: Exercise): Exercise {
     const operandsMatrix: number[][] = calculateOperandsMatrix(<number[]>exercise.expression.operands);
     const carry: number[] = calculateCarry(_invert(operandsMatrix), _subValFunc, _subCarryFunc);
     ext.push({ operands: operandsMatrix, carry: carry, value: _decompose_digit(<number>exercise.expression.value) });
-    exercise.extension = {type:'SUB_CARRY', extensions: ext}
+    exercise.extension = { type: 'SUB_CARRY', extensions: ext }
     return exercise
 }
 
@@ -197,7 +197,7 @@ export function extendMultCarry(exercise: Exercise): Exercise {
         const carry = calculateCarry(vsrevinvert, _addValueFunc, _addCarryFunc);
         ext.push({ operands: vsnorm, carry: carry, value: _decompose_digit(<number>exercise.expression.value) });
     }
-    exercise.extension = { type: 'MULT_MULT', extensions : ext}
+    exercise.extension = { type: 'MULT_MULT', extensions: ext }
     return exercise
 }
 
@@ -260,6 +260,7 @@ export function extendDivEven(exercise: Exercise): Exercise {
     const divisor = <number>exercise.expression.operands[1];
     let v = [];
     let _parts: number[] = [];
+    let firstRun = true
 
     for (let i = 0; i < dividend_in.length;) {
         _parts.push(dividend_in[i]);
@@ -271,10 +272,17 @@ export function extendDivEven(exercise: Exercise): Exercise {
             v = [];
         }
 
-        // consume dividend_in while current part is < divisor
-        while (_greater(divisor_in, _parts)) {
-            _parts.push(dividend_in[i]);
-            i++;
+        // search proper entry point, but only at first run
+        // all preceeding runs consume only 1 digit / run
+        if (firstRun) {
+            // consume dividend_in while current part is < divisor
+            // additional check if something left for next round second to last
+            // otherwise running into lots of 'undefineds' with trailing "0"s 
+            while (_greater(divisor_in, _parts) && i < dividend_in.length) {
+                _parts.push(dividend_in[i]);
+                i++;
+            }
+            firstRun = false
         }
 
         const divPart = _toNumber(_parts);
@@ -288,8 +296,7 @@ export function extendDivEven(exercise: Exercise): Exercise {
         _parts = [];
     }
 
-    //console.log('div ext result ('+ result.length+') : '+ JSON.stringify(result));
-    exercise.extension = {type: 'DIV_EVEN', extensions: result}
+    exercise.extension = { type: 'DIV_EVEN', extensions: result }
     return exercise
 }
 
@@ -325,12 +332,6 @@ function createExtensionDivision(d: number, smallestFit: number, v: number) {
     let normalizedValue = _normalize(decomV, decomD.length, false);
 
     let subExtension: Extension = { operands: [decomD, decomS], value: normalizedValue };
-    // no carry we want
-    //let inExpr: Expression = { operands: [d, smallestFit], operations: ['sub'], value: v };
-    //let sub = generateExtensionsCarrySub(inExpr)[0];
-    // if (sub.carry && sub.carry.some(j => j !== 0)) {
-    //     subExtension.carry = sub.carry;
-    // }
     return subExtension;
 }
 

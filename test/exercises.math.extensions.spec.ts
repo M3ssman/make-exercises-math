@@ -65,6 +65,46 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[0].value.toString(), '5,6');
     });
 
+    it('bugfix test 2222 : 11 = 202', () => {
+        const expr: Expression = {
+            operations: ['div'],
+            operands: [2222 , 11],
+            value: 202
+        };
+        const ee: ExtensionExpression = extendDivEven({expression:expr}).extension
+        console.log('### EXTS ' + JSON.stringify(ee))
+        assert.equal(3, ee.extensions.length);
+        assert.equal(ee.extensions[0].operands[0].toString(), '2,2');
+        assert.equal(ee.extensions[0].operands[1].toString(), '2,2');
+        assert.equal(ee.extensions[0].value.toString(), '0,0');
+        assert.equal(ee.extensions[1].operands[0].toString(), '2');
+        assert.equal(ee.extensions[1].operands[1].toString(), '0');
+        assert.equal(ee.extensions[1].value.toString(), '2');
+        assert.equal(ee.extensions[2].operands[0].toString(), '2,2');
+        assert.equal(ee.extensions[2].operands[1].toString(), '2,2');
+        assert.equal(ee.extensions[2].value.toString(), '0,0');
+    });
+
+    it('bugfix test 1100 : 10 = 110', () => {
+        const expr: Expression = {
+            operations: ['div'],
+            operands: [1100 , 10],
+            value: 110
+        };
+        const ee: ExtensionExpression = extendDivEven({expression:expr}).extension
+        console.log('### EXTS ' + JSON.stringify(ee))
+        assert.equal(3, ee.extensions.length);
+        assert.equal(ee.extensions[0].operands[0].toString(), '1,1');
+        assert.equal(ee.extensions[0].operands[1].toString(), '1,0');
+        assert.equal(ee.extensions[0].value.toString(), '0,1');
+        assert.equal(ee.extensions[1].operands[0].toString(), '1,0');
+        assert.equal(ee.extensions[1].operands[1].toString(), '1,0');
+        assert.equal(ee.extensions[1].value.toString(), '0,0');
+        assert.equal(ee.extensions[2].operands[0].toString(), '0');
+        assert.equal(ee.extensions[2].operands[1].toString(), '0');
+        assert.equal(ee.extensions[2].value.toString(), '0');
+    });
+
     it('bugfix test 636 : 6 = 106', () => {
         const expr: Expression = {
             operations: ['div'],
@@ -72,7 +112,6 @@ describe('Extension API', function () {
             value: 106
         };
         const ee: ExtensionExpression = extendDivEven({expression:expr}).extension
-        console.log('### EXTS ' + JSON.stringify(ee))
         assert.equal(3, ee.extensions.length);
         assert.equal(ee.extensions[0].operands[0].toString(), '6');
         assert.equal(ee.extensions[0].operands[1].toString(), '6');
