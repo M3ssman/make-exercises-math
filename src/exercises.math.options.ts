@@ -143,6 +143,7 @@ export const add_add_carry: Options = {
     set: 'N',
     level: 2,
     operations: ['add', 'add'],
+    extension: "ADD_CARRY",
     operands: [
         { rangeN: { min: 500, max: 9999 } },
         { rangeN: { max: 1500 } },
@@ -209,39 +210,3 @@ export const div_even: Options = {
         { rangeN: { min: 2, max: 12 } },
     ]
 };
-
-/**
- * 
- * @deprecated
- * 
- */
-/* export function multN10Nof2(): ExerciseMath {
-    return multN10ofX(2);
-}
-
-export function multN10Nof5(): ExerciseMath {
-    return multN10ofX(5);
-}
-
-export function multN10Nof10(): ExerciseMath {
-    return multN10ofX(10);
-} */
-
-/* export function multN10ofX(x: number): ExerciseMath {
-    const constraints: Constraint[] = [
-        { exactMatchOf: x },
-        { rangeN: rangeN10 }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMath(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
-}
-
-export function multN3_100(): ExerciseMath {
-    const constraints: Constraint[] = [
-        { rangeN: rangeN20 },
-        { rangeN: rangeN20 },
-        { rangeN: rangeN100 }
-    ];
-    const e: Expression = generateExpression([mult], constraints, null);
-    return new ExerciseMath(e, new SimpleExpressionResultRenderer(), generateExtensionsDefault);
-} */

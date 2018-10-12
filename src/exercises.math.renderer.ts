@@ -23,6 +23,13 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult }
 };
 
+export type RenderedType = 'FIRST_ROW' | 'OPERAND' | 'INTERMEDIATE' | 'CARRY' | 'VALUE'
+
+export interface Rendered {
+    rendered: string
+    type: RenderedType
+}
+
 export interface Renderer {
     (exercise: Exercise): Exercise;
 }
@@ -68,7 +75,7 @@ export function renderDefault(exercise: Exercise): Exercise {
         }
     }
     const result: string = '' + xpr + ' = ' + mask;
-    exercise.rendered.push(result);
+    exercise.rendered.push({ rendered: result, type: 'FIRST_ROW' });
     return exercise;
 }
 
@@ -78,41 +85,49 @@ export function renderDefault(exercise: Exercise): Exercise {
  * 
  */
 export function renderExtensionsAdditionCarry(exercise: Exercise): Exercise {
-    let result = [];
+    let result: Rendered[];
     if (exercise.expression.operands && exercise.expression.value) {
         const str_op = funcMap[exercise.expression.operations[0]].label;
-        const str_ops = (<number[]>exercise.expression.operands).map(o => o.toString());
+        const str_ops: string[] = (<number[]>exercise.expression.operands).map(o => o.toString());
 
         const _v: number | number[] = exercise.extension.extensions[0].carry || [];
+        // if carry exists and is Array, reduce it to string row
         const cr = (_v instanceof Array) ? _v.reduce((p, c) => p + c, '') : '';
-        const renderedCarry = maskCarry(cr, '_');
+        //const renderedCarry = maskCarry(cr, '_');
         const str_val = exercise.expression.value.toString();
-        const max_len = calculateMaxLen(str_ops, str_val, renderedCarry);
-
+        // calculate max length of Operators
+        const max_len = calculateMaxLen(str_ops, str_val, cr);
         // respect operator and whitespace after operator
         const tar_len = max_len + 2;
-
-        // fill whitespaces
-        const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
+        // fill whitespaces for Operators
+        const _filled_ops: string[] = str_ops.map(op => prepend_ws(tar_len, op))
+        // fill whitespaces for final Value
         const filled_val = prepend_ws(tar_len, str_val);
 
         // where to prepend the operator char
         let tmp_carry = '';
-        if (renderedCarry.trim().length > 0) {
-            tmp_carry = prepend_ws(tar_len, renderedCarry);
+        // if (renderedCarry.trim().length > 0) {
+        if (cr.trim().length > 0) {
+            tmp_carry = prepend_ws(tar_len, cr);
             tmp_carry = str_op + ' ' + tmp_carry.substring(2);
         } else {
-            const l = filled_ops.length - 1;
-            filled_ops[l] = str_op + ' ' + filled_ops[l].substring(2);
+            // if no carry exists, prepend "+"-Sign before last Operand
+            const l = _filled_ops.length - 1;
+            _filled_ops[l] = str_op + ' ' + _filled_ops[l].substring(2);
         }
 
-        // collect final results
-        result = [].concat(filled_ops);
+        // push intermediate Results
+        const _i: RenderedType = 'OPERAND'
+        const rendered_ops: Rendered[] = _filled_ops.map(_s => {
+            return { type: _i, rendered: _s }
+        });
+        result = [].concat(rendered_ops);
+        // collect carry if exists
         if (tmp_carry.trim().length > 0) {
-            result.push(tmp_carry);
+            result.push({ type: 'CARRY', rendered: tmp_carry });
         }
-        // mask result
-        result.push(filled_val.replace(/[0-9]/g, '_'));
+        // collect result
+        result.push({ type: 'VALUE', rendered: filled_val });
     }
     exercise.rendered = exercise.rendered.concat(result);
     return exercise;
@@ -139,13 +154,9 @@ function calculateMaxLen(ops: string[], ...args: string[]): number {
         0);
 }
 
-function maskCarry(value: string, mask: string): string {
-    return value.replace(/0/g, ' ').replace(/[1-9]/g, mask);
-}
-
 
 export function renderExtensionsSubtractionCarry(exercise: Exercise): Exercise {
-    let result = [];
+    let result: Rendered[] = [];
     if (exercise.expression.operands && exercise.expression.value) {
         const str_op = funcMap[exercise.expression.operations[0]].label;
         const str_ops = (<number[]>exercise.expression.operands).map(o => o.toString());
@@ -159,7 +170,8 @@ export function renderExtensionsSubtractionCarry(exercise: Exercise): Exercise {
         const tar_len = max_len + 2;
 
         // fill whitespaces
-        const filled_ops = str_ops.map(op => prepend_ws(tar_len, op));
+        const filled_ops: string[] = str_ops.map(op => prepend_ws(tar_len, op))
+
         const filled_val = prepend_ws(tar_len, str_val);
 
         // where to prepend the operator char
@@ -171,14 +183,20 @@ export function renderExtensionsSubtractionCarry(exercise: Exercise): Exercise {
             const l = filled_ops.length - 1;
             filled_ops[l] = str_op + ' ' + filled_ops[l].substring(2);
         }
+        // map to Rendered
+        const to: RenderedType = 'OPERAND'
+        const _rs: Rendered[] = filled_ops.map(fo => {
+            return { type: to, rendered: fo }
+        })
 
-        // collect final results
-        result = [].concat(filled_ops);
+        // collect operand rows
+        result = result.concat(_rs);
+        // collect carry if exists
         if (tmp_carry.trim().length > 0) {
-            result.push(maskCarry(tmp_carry, '_'));
+            result.push({ type: 'CARRY', rendered: tmp_carry })
         }
-        // mask result
-        result.push(filled_val.replace(/[0-9]/g, '_'));
+        // get result
+        result.push({ type: 'VALUE', rendered: filled_val })
     }
     exercise.rendered = exercise.rendered.concat(result);
     return exercise;
@@ -186,49 +204,57 @@ export function renderExtensionsSubtractionCarry(exercise: Exercise): Exercise {
 
 
 export function renderExtensionsMultiplication(exercise: Exercise): Exercise {
-    let result = [];
+    let result: Rendered[] = [];
     if (exercise.expression.operands && exercise.extension && exercise.expression.value) {
         const str_op = funcMap[exercise.expression.operations[0]].label;
         const str_ops: string[] = (<number[]>exercise.expression.operands).map(o => o.toString());
         // render exercises first row
-        const rowOne = str_ops[0] + ' ' + str_op + ' ' + str_ops[1];
+        const fr: RenderedType = 'FIRST_ROW'
+        const im: RenderedType = 'INTERMEDIATE'
+        const rowOne = { type: fr, rendered: str_ops[0] + ' ' + str_op + ' ' + str_ops[1] };
         result.push(rowOne);
         // first row must be the longest row
-        const max_len = rowOne.length;
+        const max_len = rowOne.rendered.length;
 
         (<number[][]>exercise.extension.extensions[0].operands)
+            //.map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
             .map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
-            .map(opStr => replaceLeadingZeros(opStr))
-            .map(opStr2 => prepend_ws(max_len, opStr2))
-            .map(opStr3 => opStr3.replace(/[1-9]/g, '_'))
-            .forEach(ops => result.push(ops));
+            .map((opStr: string, i: number) => replaceLeadingZeros(opStr, i))
+            .map(_s3 => prepend_ws(max_len, _s3))
+            .forEach(_s4 => result.push({ type: im, rendered: _s4 }))
 
         let carryStr = '';
         const str_val = exercise.expression.value.toString();
         if (exercise.extension.extensions[0].carry && exercise.extension.extensions[0].carry.filter(d => d > 0).length > 0) {
             carryStr = exercise.extension.extensions[0].carry.reduce((p, c) => p + c, '') || '';
+            // handle carry if exists
             if (carryStr && carryStr.trim().length > 0) {
-                result.push(maskCarry(prepend_ws(max_len, carryStr), '_'));
+                const car: Rendered = { type: 'CARRY', rendered: prepend_ws(max_len, carryStr) }
+                result.push(car)
             }
         }
 
         // fill whitespaces
         const filled_val = prepend_ws(max_len, str_val);
 
-        // mask result
-        result.push(filled_val.replace(/[0-9]/g, '_'));
+        // get result
+        const val: Rendered = { type: 'VALUE', rendered: filled_val }
+        result.push(val)
     }
     // push value at last
-    //return result;
     exercise.rendered = exercise.rendered.concat(result);
     return exercise;
 }
 
-function replaceLeadingZeros(s: string): string {
-    let t: string[] = [];
+function replaceLeadingZeros(s: string, index?: number): string {
+    const t: string[] = [];
     let i = 0;
-    while (s.charAt(i) === '0') {
-        t[i++] = ' ';
+    // track reverted count var j
+    let j = s.length - index
+    // as long as charAt i is Zero AND we havent reached the zero to keep index
+    while (s.charAt(i) === '0' && i <= j) {
+        t[i++] = ' '
+        j--
     }
     let ts = t.reduce((p, c) => p + c, '');
     return ts.concat(s.substring(i));
@@ -242,16 +268,16 @@ function replaceLeadingZeros(s: string): string {
  * 
  */
 export function renderExtensionsDivEven(exercise: Exercise): Exercise {
-    let result: string[] = [];
+    let result: Rendered[] = [];
     if (_isValid(exercise)) {
         const expr = exercise.expression;
         const gap = '  '
         const dividend = expr.operands[0];
         const divisor = expr.operands[1];
         const firstRow = gap + dividend.toString() + ' : ' + divisor + ' = ' + expr.value;
-        result.push(firstRow);
+        result.push({ rendered: firstRow, type: 'FIRST_ROW' });
         if (exercise.extension.extensions.length > 0) {
-            const gapMap : {[key:number]: number} = {}
+            const gapMap: { [key: number]: number } = {}
             exercise.extension.extensions
                 .forEach((e, i, es) => result = result.concat(_renderExtensionDiv(e, i, es, gapMap)));
         }
@@ -265,37 +291,37 @@ function _isValid(exercise: Exercise) {
 }
 
 const signToken = '- '
-function _renderExtensionDiv(e: Extension, i: number, es: Extension[], gapMap: {[key:number]: number}): string[] {
-    const r: string[] = [];
+function _renderExtensionDiv(e: Extension, i: number, es: Extension[], gapMap: { [key: number]: number }): Rendered[] {
+    const r: Rendered[] = [];
     let _g = ''
 
     const subtrah = e.operands[0].join('')
     const minuend = e.operands[1].join('')
-    
+
     // we dont want first row subtrahend, this is already rendered
     if (i === 0) {
-        r.push(signToken + minuend);
+        r.push({ rendered: signToken + minuend, type: 'INTERMEDIATE' });
         gapMap[0] = 2
     }
-    
+
     // handle subtrahend + minuend
     if (i > 0) {
-        let ng = _calculateGap(e, i, es[i-1].value, gapMap);
+        let ng = _calculateGap(e, i, es[i - 1].value, gapMap);
         gapMap[i] = ng
         const g: string = _fillSpace(ng)
-        r.push(_keepLastZero(g + subtrah, es[i - 1]));
-        r.push(_exchangeSign(g + minuend));
+        r.push({ rendered: _keepLastZero(g + subtrah, es[i - 1]), type: 'INTERMEDIATE' });
+        r.push({ rendered: _exchangeSign(g + minuend), type: 'INTERMEDIATE' });
         // store for final result
         _g = g
     }
-    
+
     // only use value for very last entry
     let differe = e.value.join('')
     if (Number.parseInt(differe) === 0) {
         differe = _fillSpace(differe.length - 1) + '0'
     }
     if (i === (es.length - 1)) {
-        r.push(_g + differe);
+        r.push({ rendered: _g + differe, type: "VALUE" });
     }
     return r;
 }
@@ -318,17 +344,17 @@ export function _exchangeTrailingZeros(nrs: number[], isFirst: boolean): string 
     return whiteZeros + rawNumber;
 }
 
-export function _calculateGap(e: Extension, i: number, es: number[],gapMap: {[key:number]: number}): number {
+export function _calculateGap(e: Extension, i: number, es: number[], gapMap: { [key: number]: number }): number {
     const subtrah = e.operands[0].join('')
     const prevValStr = es.join('')
     const previousVal = Number.parseInt(prevValStr)
 
     // start value for gap, move 1 column to the right
     let len = 0
-    if( previousVal !== 0) {
-        len = gapMap[i-1] + (1 - Math.abs(subtrah.length - prevValStr.length))
+    if (previousVal !== 0) {
+        len = gapMap[i - 1] + (1 - Math.abs(subtrah.length - prevValStr.length))
     } else { // previousVal was "0"
-        len = gapMap[i-1] + prevValStr.length
+        len = gapMap[i - 1] + prevValStr.length
     }
     return len
 }

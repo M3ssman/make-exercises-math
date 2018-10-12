@@ -5,6 +5,7 @@ import {
 import {
     funcMap,
     Renderer,
+    Rendered,
     renderDefault,
     renderExtensionsAdditionCarry,
     renderExtensionsSubtractionCarry,
@@ -50,8 +51,10 @@ export type ExtensionType =
     | 'ADD_FRACTION'
 
 export type MaskType =
-    'ALL'
+      ''
+    | 'ALL'
     | 'NON_ZERO'
+    | 'MASK_CARRY'
 
 export interface Range {
     max: number;
@@ -111,7 +114,7 @@ export interface Extension {
 
 export interface Exercise {
     expression?: Expression;
-    rendered?: string[];
+    rendered?: Rendered[];
     extension?: ExtensionExpression;
 }
 

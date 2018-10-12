@@ -72,7 +72,6 @@ describe('Extension API', function () {
             value: 202
         };
         const ee: ExtensionExpression = extendDivEven({expression:expr}).extension
-        console.log('### EXTS ' + JSON.stringify(ee))
         assert.equal(3, ee.extensions.length);
         assert.equal(ee.extensions[0].operands[0].toString(), '2,2');
         assert.equal(ee.extensions[0].operands[1].toString(), '2,2');
@@ -92,7 +91,7 @@ describe('Extension API', function () {
             value: 110
         };
         const ee: ExtensionExpression = extendDivEven({expression:expr}).extension
-        console.log('### EXTS ' + JSON.stringify(ee))
+        //console.log('### EXT ' + JSON.stringify(ee))
         assert.equal(3, ee.extensions.length);
         assert.equal(ee.extensions[0].operands[0].toString(), '1,1');
         assert.equal(ee.extensions[0].operands[1].toString(), '1,0');
