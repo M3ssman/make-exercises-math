@@ -1,27 +1,33 @@
 import {
     Expression,
     Exercise,
-    Extension
+    Extension,
+    N,
+    Q,
+    funcMap
 } from './exercises.math';
 
 /**
  * Basic Binary Functions
  */
-export function add(a: number, b: number): number { return a + b }
-export function sub(a: number, b: number): number { return a - b }
-export function mult(a: number, b: number): number { return a * b }
-export function div(a: number, b: number): number { return a / b }
+// export function addN(a: number, b: number): number {  
+//     return a + b 
+// }
+// export function addQ(a: Q, b: Q): Q { return a}
+// export function sub(a: number, b: number): number { return a - b }
+// export function mult(a: number, b: number): number { return a * b }
+// export function div(a: number, b: number): number { return a / b }
 
-export interface OpEntry {
-    label: string;
-    func: (a: number, b: number) => number;
-}
-export const funcMap: { [key: string]: OpEntry } = {
-    'add': { label: '+', func: add },
-    'sub': { label: '-', func: sub },
-    'mult': { label: '*', func: mult },
-    'div': { label: ':', func: mult }
-};
+// export interface OpEntry {
+//     label: string;
+//     func: (a: number, b: number) => number;
+// }
+// export const funcMap: { [key: string]: OpEntry } = {
+//     'addN': { label: '+', func: addN },
+//     'sub': { label: '-', func: sub },
+//     'mult': { label: '*', func: mult },
+//     'div': { label: ':', func: mult }
+// };
 
 export type RenderedType = 'FIRST_ROW' | 'OPERAND' | 'INTERMEDIATE' | 'CARRY' | 'VALUE'
 

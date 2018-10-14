@@ -1,8 +1,8 @@
 import { assert } from 'chai';
 import {
+    addQ,
     Exercise,
     ExerciseSet,
-    Expression,
     Options,
     makeSet
 } from '../src/exercises.math';
@@ -19,6 +19,15 @@ import {
 import {
     Rendered
 } from '../src/exercises.math.renderer'
+
+/**
+ * Test Exercise Functions
+ */
+describe('Rational Functions', function () {
+    it('should add Q + Q => Q', ()=>{
+        const actual1 = addQ([[1],[3]],[[3],[4]])
+    });
+});
 
 /**
  * Test Exercise Types Exported Types

@@ -1,11 +1,8 @@
-// import { MathBaseOption } from './math.base-option';
-import { Constraint } from './exercises.math';
 import {
+    Constraint,
     Expression,
-    ExtensionExpression,
-    ExtensionType,
-    Fraction,
-    MixedNumeral
+    Range,
+    Q
 } from './exercises.math';
 
 /**
@@ -20,9 +17,9 @@ export function generateExpression(
     operandsConstraints: Constraint[],
     resultConstraints: Constraint): Expression {
 
-    let x ; 
-    let y ;
-    let r ; 
+    let x;
+    let y;
+    let r;
     let expression: Expression = {
         operands: [], operations: [], value: 0
     };
@@ -81,6 +78,72 @@ export function generateExpression(
     return expression;
 }
 
+export function generateRationalExpression(
+    operations: ((x: Q, y: Q) => Q)[],
+    operandsConstraints: Constraint[],
+    resultConstraints: Constraint): Expression {
+
+    let x;
+    let y;
+    let r;
+    let expression: Expression = {
+        operands: [], operations: [], value: 0
+    };
+    let xConstr, yConstr;
+    let nr_ok = false, r_ok = true, not_finished = true;
+
+    do {
+        // get first two operand constraints, if any, to compute f(x,y)
+        if (operandsConstraints !== undefined && operandsConstraints[0]) {
+            xConstr = operandsConstraints[0];
+        }
+        x = _getNumber(xConstr);
+        if (operandsConstraints !== undefined && operandsConstraints[1]) {
+            yConstr = operandsConstraints[1];
+        }
+        y = _getNumber(yConstr);
+
+        nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
+        r = (operations[0])(x, y);
+
+        // build expression
+        (<number[]>expression.operands).push(x, y);
+        expression.operations.push(operations[0].name);
+
+        // with more than 1 operation do
+        if (operations.length > 1) {
+            for (let a = 2, o = 1; o < operations.length; o++ , a++) {
+                if (operandsConstraints !== undefined && operandsConstraints[a]) {
+                    yConstr = operandsConstraints[a];
+                }
+                y = _getNumber(yConstr);
+                (<number[]>expression.operands).push(y);
+
+                nr_ok = __holdXYoperandsConstraints(r, y, undefined, yConstr);
+                r = (operations[o])(r, y);
+                expression.operations.push(operations[o].name);
+            }
+        }
+        // final result
+        expression.value = r;
+
+        // check result constraint
+        const r_const: Constraint = resultConstraints;
+        if (r_const && !Object.keys(r_const).length) {
+            r_ok = __holdResultConstraints(r, r_const)
+        }
+        // check operandConstraints
+        if (nr_ok && r_ok) {
+            not_finished = false;
+        } else {
+            expression.operands = [];
+            expression.operations = [];
+        }
+
+    } while (not_finished);
+    return expression;
+}
+
 function __holdXYoperandsConstraints(x: number, y: number, xConstr: Constraint, yConstr: Constraint): boolean {
     if (xConstr && xConstr.greaterThanIndex) {
         return x > y;
@@ -92,9 +155,9 @@ function __holdXYoperandsConstraints(x: number, y: number, xConstr: Constraint, 
 
 function __holdResultConstraints(r: number, constraint: Constraint): boolean {
     if (constraint.multipleOf) {
-        return (r % constraint.multipleOf) === 0;
+        return (r % <number>constraint.multipleOf) === 0;
     } else if (constraint.rangeN) {
-        const cr = constraint.rangeN;
+        const cr: Range = constraint.rangeN;
         if (cr.min) {
             return r >= cr.min && r <= cr.max;
         }
@@ -103,7 +166,7 @@ function __holdResultConstraints(r: number, constraint: Constraint): boolean {
     return true;
 }
 
-function  _getNumber(constraint?: Constraint): number | [number, number] {
+function _getNumber(constraint?: Constraint): number | [number, number] {
     let result;
 
     // sanitize
@@ -115,7 +178,7 @@ function  _getNumber(constraint?: Constraint): number | [number, number] {
         do {
             result = __generateN(constraint.rangeN.max, constraint.rangeN.min).next().value;
         } while (!__checkSingleConstraint(result, constraint));
-    } else if(constraint.rangeQ) {
+    } else if (constraint.rangeQ) {
         do {
             result = __generateQ(constraint.rangeQ.max, constraint.rangeQ.min).next().value;
         } while (!__checkSingleConstraint(result, constraint));
@@ -125,22 +188,24 @@ function  _getNumber(constraint?: Constraint): number | [number, number] {
     return result;
 }
 
-function __checkSingleConstraint(n: number, constraint: Constraint): boolean {
+function __checkSingleConstraint(n: number | [number, number], constraint: Constraint): boolean {
     if (constraint.multipleOf) {
-        return (n % constraint.multipleOf) === 0;
+        if (constraint.rangeN) {
+            return (<number>n % <number>constraint.multipleOf) === 0;
+        }
     }
     return true;
 }
 
-function * __generateN(to: number, from?: number): IterableIterator<number> {
+function* __generateN(to: number, from?: number): IterableIterator<number> {
     if (from) {
         yield to - Math.ceil(Math.random() * (to - from));
     }
     yield Math.ceil(Math.random() * to);
 }
 
-function * __generateQ(to: [number,number], from: [number,number]) : IterableIterator<[number,number]> {
-    if(from) {
+function* __generateQ(to: [number, number], from: [number, number]): IterableIterator<[number, number]> {
+    if (from) {
         yield [Math.ceil(Math.random() * (to[0] - from[0])), Math.ceil(Math.random() * (to[1] - from[1]))];
     }
     yield [Math.ceil(Math.random() * to[0]), Math.ceil(Math.random() * to[1])];

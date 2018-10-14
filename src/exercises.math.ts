@@ -3,7 +3,6 @@ import {
     generateDivisionWithRest,
 } from './exercises.math.generator';
 import {
-    funcMap,
     Renderer,
     Rendered,
     renderDefault,
@@ -51,7 +50,7 @@ export type ExtensionType =
     | 'ADD_FRACTION'
 
 export type MaskType =
-      ''
+    ''
     | 'ALL'
     | 'NON_ZERO'
     | 'MASK_CARRY'
@@ -67,11 +66,11 @@ export interface RangeQ {
 
 export interface Constraint {
     greaterThanIndex?: number;
-    exactMatchOf?: number;
+    exactMatchOf?: number | [number, number];
     rangeN?: Range;
     rangeZ?: Range;
     rangeQ?: RangeQ;
-    multipleOf?: number;
+    multipleOf?: number | [number, number];
 }
 
 export interface Options {
@@ -166,7 +165,6 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
             .filter(option => option.operations.indexOf("div") < 0)
             .map(option => {
                 const _exercises: Exercise[] = [];
-                //const _props : Properties = {set : "N", level: option.level, operations: option.operations}; 
                 const _props: Properties = option;
                 const _q = option.quantity || 12;
                 for (let i = 0; i < _q; i++) {
@@ -190,7 +188,7 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
                 }
                 for (let i = 0; i < _q; i++) {
                     if (option.extension === 'DIV_EVEN') {
-                        let multFunc: ((a: number, b: number) => number) = funcMap['mult'].func;
+                        const multFunc = funcMap['mult'].func;
                         let _exp: Expression = generateExpression([multFunc], option.operands, option.result);
                         const exp: Expression = { operations: ['div'], value: _exp.operands[0], operands: <number[]>[<number>_exp.value, _exp.operands[1]] };
                         _exercise.push({ expression: exp, rendered: [] });
@@ -244,3 +242,24 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
         }
     });
 }
+
+
+/**
+ * Basic Binary Functions
+ */
+export function add(a: number, b: number): number { return a + b }
+export function addQ(a: Q, b: Q): Q { return a }
+export function sub(a: number, b: number): number { return a - b }
+export function mult(a: number, b: number): number { return a * b }
+export function div(a: number, b: number): number { return a / b }
+
+export interface OpEntry {
+    label: string;
+    func: (a: number, b: number) => number;
+}
+export const funcMap: { [key: string]: OpEntry } = {
+    'add': { label: '+', func: add },
+    'sub': { label: '-', func: sub },
+    'mult': { label: '*', func: mult },
+    'div': { label: ':', func: mult }
+};
