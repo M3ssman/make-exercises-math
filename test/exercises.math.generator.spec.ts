@@ -7,7 +7,7 @@ import {
     makeSet,
     add,
     sub,
-    addQ
+    addFraction
 } from '../src/exercises.math';
 import {
     generateExpression,
@@ -53,16 +53,23 @@ describe('Generation with Constraints', () => {
         assert.isTrue(r >= 90 && r <= 100)
     });
 
-    xit('should generate Rational Expression with x_1 between [1/3 .. 3/4] and x_1 > 1/2', () => {
+    it('should generate default 2 Expression with 3 operands from 2x add', () => {
+        const expr: Expression = generateExpression([add, add], [], {})
+        assert.equal(3, expr.operands.length);
+        assert.isTrue(<number>expr.operands[0] < 101)
+    });
+
+    it('should generate Rational Expression with x_1 between [1/3 .. 3/4] and x_1 > 1/2', () => {
         const operandConstraints: Constraint[] = [
-            { rangeQ: { min: [1, 3], max: [3, 4] }, greaterThanIndex: 1 },
-            { exactMatchOf: [1,2] }
+            { rangeQ: { min: [1, 4], max: [3, 4] }, greaterThanIndex: 1 },
+            { exactMatchOf: [2, 4] }
         ]
 
-        const expr: Expression = generateRationalExpression([addQ], operandConstraints, {})
+        const expr: Expression = generateRationalExpression([addFraction], operandConstraints, {})
         const x = expr.operands[0];
-        const y = expr.operands[1];
-        assert.isTrue(x >= [1,2], 'expect x >= 1/2, but x was ' + x);
-        assert.equal(y, [1,2])
+        const y: [number, number] = <[number, number]>expr.operands[1];
+        assert.isTrue(x >= [1, 2], 'expect x >= 1/2, but x was ' + x);
+        assert.deepEqual<[number, number]>(y, [2, 4])
+        assert.deepEqual<[number, number]>(<[number, number]>expr.value, [5, 4])
     });
 });

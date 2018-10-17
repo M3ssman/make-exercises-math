@@ -248,7 +248,6 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
  * Basic Binary Functions
  */
 export function add(a: number, b: number): number { return a + b }
-export function addQ(a: Q, b: Q): Q { return a }
 export function sub(a: number, b: number): number { return a - b }
 export function mult(a: number, b: number): number { return a * b }
 export function div(a: number, b: number): number { return a / b }
@@ -257,9 +256,63 @@ export interface OpEntry {
     label: string;
     func: (a: number, b: number) => number;
 }
+
 export const funcMap: { [key: string]: OpEntry } = {
     'add': { label: '+', func: add },
     'sub': { label: '-', func: sub },
     'mult': { label: '*', func: mult },
     'div': { label: ':', func: mult }
 };
+
+export function addFraction(a: Fraction, b: Fraction): Fraction { 
+    const _sum: [number,number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]
+    return rationalize(_sum) 
+}
+
+/**
+ * Greatest Common Divisor
+ * @param a numerator
+ * @param b denominNator
+ */
+export function gcd(a: number, b: number): number {
+    if(a === 0 && b === 0) {
+        return 1
+    }
+    if (a < b) {
+        let smallestFit = a;
+        a = b;
+        b = smallestFit;
+    }
+    while ((a - b) > 0) {
+        a = a - b;
+        if (a < b) {
+            let smallestFit = a;
+            a = b;
+            b = smallestFit;
+        }
+    }
+    return a;
+}
+export function rationalize(f: Fraction): Fraction {
+    const [a, b] = f;
+    const _gcd = gcd(a, b);
+    if (_gcd > 1) {
+        return [a / _gcd, b / _gcd];
+    }
+    return f;
+}
+export function canonize(f: Fraction): MixedNumeral {
+    const [n, d] = f;
+    // cornercase denominNator === 1, since n % 1 => 0
+    if (d === 1) {
+        return [n, [n, d]];
+    }
+    const diff = n % d;
+    let i = 0;
+    let _n = n;
+    while (_n > d) {
+        _n -= d;
+        i++;
+    }
+    return [i, [_n, d]];
+}

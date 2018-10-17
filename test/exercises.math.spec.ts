@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import {
-    addQ,
+    addFraction,
+    Fraction,
     Exercise,
     ExerciseSet,
     Options,
@@ -24,8 +25,15 @@ import {
  * Test Exercise Functions
  */
 describe('Rational Functions', function () {
-    it('should add Q + Q => Q', ()=>{
-        const actual1 = addQ([[1],[3]],[[3],[4]])
+    it('add rationales: 1/3 + 1/4 => 13/12', () => {
+        const actual1: Fraction = addFraction([1, 3], [3, 4])
+        const expected1: Fraction = [13, 12]
+        assert.deepEqual(actual1, expected1)
+    });
+    it('add rationales: 1/3 + 5/3 => 2/1', () => {
+        const actual1: Fraction = addFraction([1, 3], [5, 3])
+        const expected1: Fraction = [2, 1]
+        assert.deepEqual(actual1, expected1)
     });
 });
 
@@ -438,7 +446,7 @@ describe('Division without rest API', function () {
         assert.exists(set[0]);
         const exercise = set[0].exercises[0];
         assert.isNotNull(exercise.expression.value);
-        assert.equal(set[0].properties.extension, 'DIV_EVEN'); 
+        assert.equal(set[0].properties.extension, 'DIV_EVEN');
         const actualExtensions = exercise.extension.extensions;
         assert.isNotEmpty(actualExtensions);
         assert.equal(actualExtensions.length, 2);
@@ -458,13 +466,13 @@ describe('Division without rest API', function () {
         assert.exists(set[0]);
         const exercise = set[0].exercises[0];
         assert.isNotNull(exercise.expression.value);
-        assert.equal(set[0].properties.extension, 'DIV_EVEN'); 
+        assert.equal(set[0].properties.extension, 'DIV_EVEN');
         const actualExtensions = exercise.extension.extensions;
         assert.isNotEmpty(actualExtensions);
         assert.equal(actualExtensions.length, 3);
-        assert.equal(7,  exercise.rendered.length);
+        assert.equal(7, exercise.rendered.length);
     });
-    
+
     it('should generate 3 even divisions with d_2 in {50 .. 99} and q_0 {2..99}', async function () {
         const sets = await makeSet([div_even])
         assert.equal(1, sets.length);
