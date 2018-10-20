@@ -2,7 +2,8 @@ import {
     Constraint,
     Expression,
     Range,
-    Fraction
+    Fraction,
+    rationalize
 } from './exercises.math';
 
 /**
@@ -118,7 +119,8 @@ export function generateRationalExpression(
         }
         x = <Fraction>_getNumber(xConstr);
         if (x === undefined) {
-            console.log('[ERROR] no Fraction x_0 generated within 10 tries!')
+            console.error('[ERROR] no Fraction x_0 generated within 10 tries!')
+            throw new Error('No Fraction x_0 generated within 10 tries!')
         }
         if (operandsConstraints !== undefined && operandsConstraints[1]) {
             yConstr = operandsConstraints[1];
@@ -126,7 +128,8 @@ export function generateRationalExpression(
 
         y = <Fraction>_getNumber(yConstr);
         if (y === undefined) {
-            console.log('[ERROR] no Fraction y_0 generated within 10 tries!')
+            console.error('[ERROR] no Fraction y_0 generated within 10 tries!')
+            throw new Error('No Fraction y_0 generated within 10 tries!')
         }
 
         nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
@@ -144,7 +147,8 @@ export function generateRationalExpression(
                 }
                 y = <Fraction>_getNumber(yConstr);
                 if (y === undefined) {
-                    console.log('[ERROR] no Fraction y_n generated within 10 tries!')
+                    console.error('[ERROR] no further Fraction y_' + a + ' generated within 10 tries!')
+                    throw new Error('No further Fraction y_' + a + ' generated within 10 tries!')
                 }
                 (<Fraction[]>expression.operands).push(y);
 
@@ -172,6 +176,8 @@ export function generateRationalExpression(
         // safety break to prevent never ending loop
         if (_n >= MAX_TRIES) {
             loop_again = false
+            console.error('[ERROR] no valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
+            throw new Error('No valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
         }
     } while (loop_again);
     return expression;
@@ -238,21 +244,21 @@ function _getNumber(constraint?: Constraint): number | Fraction {
             result = __generateN(constraint.rangeN.max, constraint.rangeN.min).next().value;
             _n++
             if (_n >= MAX_TRIES) {
-                console.error('Unable to generate Number within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
-                break
+                console.error('[Error] Unable to generate Number within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
+                throw new Error('Unable to generate Number within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
             }
         } while (!__checkSingleConstraint(result, constraint));
     } else if (constraint.rangeQ) {
         do {
             result = __generateQ(constraint.rangeQ.max, constraint.rangeQ.min).next().value;
             if (result === undefined) {
-                console.error('Unable to generate valid Fraction that fits ' + JSON.stringify(constraint))
-                break
+                console.error('[Error] Unable to generate valid Fraction that fits ' + JSON.stringify(constraint))
+                throw new Error('Unable to generate valid Fraction that fits ' + JSON.stringify(constraint))
             }
             _n++
             if (_n >= MAX_TRIES) {
-                console.error('Unable to generate Fraction within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
-                break
+                console.error('[Error] Unable to generate Fraction within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
+                throw new Error('Unable to generate Fraction within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
             }
         } while (!__checkSingleConstraint(result, constraint))
     } else if (constraint.exactMatchOf) {
@@ -279,30 +285,50 @@ function* __generateN(to: number, from?: number): IterableIterator<number> {
 
 function* __generateQ(to: [number, number], from?: [number, number]): IterableIterator<[number, number]> {
     if (from) {
-        if (to[1] !== from[1]) {
+        if (to[1] === 0 || from[1] === 0 || to[0] === 0 || from[0] === 0) {
+            console.error('[ERROR] invalid Fractions detected ' + to + ', ' + from)
             yield undefined
+        } else if (to[1] === from[1]) { // denominators match
+            let n = _gen(from[0], to[0])
+            let d = to[1]
+            yield [n, d];
+        } else { // denominator dont match
+            const _d = from[1] * to[1]
+            const _to = [to[0] * from[1], _d]
+            const _from = [from[0] * to[1], _d]
+            const n = _gen(_from[0], _to[0])
+            yield rationalize([n, _d])
         }
-        let n = Math.ceil(Math.random() * (to[0] + 1 - from[0]))
-        //let d = Math.ceil(Math.random() * (to[1] - from[1]))
-        // denominators must match
-        let d = to[1]
-        if (n === 0) {
-            n = 1
+    } else { // only upper bound
+        let n1 = Math.ceil(Math.random() * to[0])
+        let d1 = Math.ceil(Math.random() * to[1])
+        if (n1 === 0) {
+            n1 = 1
         }
-        if (d === 0) {
-            d = 1
+        if (d1 === 0) {
+            d1 = 1
         }
-        yield [n, d];
+        yield [n1, d1];
     }
-    let n1 = Math.ceil(Math.random() * to[0] + 1)
-    let d1 = Math.ceil(Math.random() * to[1])
-    if (n1 === 0) {
-        n1 = 1
+}
+
+/**
+ * 
+ * Use ceil since we dont want n === 0
+ * Add +1 to difference to include upper bound 
+ * 
+ * @param from 
+ * @param to
+ */
+export function _gen(from: number, to: number): number {
+    const n = Math.ceil(Math.random() * (to + 1 - from))
+    // ensure bounds
+    if (n < from) {
+        return from
+    } else if (n > to) {
+        return to
     }
-    if (d1 === 0) {
-        d1 = 1
-    }
-    yield [n1, d1];
+    return n
 }
 
 /**
