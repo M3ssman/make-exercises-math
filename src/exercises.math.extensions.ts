@@ -360,19 +360,35 @@ export function _how_often(a: number, b: number): number {
  * Extension for Fraction API
  */
 export function extendAddFraction(exercise: Exercise): Exercise {
-    let ops = [[1, 4, 1, 3], [3, 4]]
-    let v: Fraction = [7, 12]
+    const _e: Expression = exercise.expression
+    exercise.extension = createExtensionAddFraction(_e)
+    return exercise
+}
+
+export function createExtensionAddFraction(expression: Expression): ExtensionExpression {
+    let ops = []
+    const s1: Fraction = <Fraction>expression.operands[0]
+    const s2: Fraction = <Fraction>expression.operands[1]
+    ops.push([s1[0], s2[1]], [s1[1], s2[0]], [s1[1], s2[1]])
+    const _d = s1[1] * s2[1]
+    ops.push([s1[0] * s2[1], s2[0] * s1[1]], _d)
+    // handling possible kuerzen
+    const _r: Fraction = [s1[0] * s2[1] + s2[0] * s1[1], _d]
+    console.log('### CALC gcd ' + gcd(_r[0], _r[1]) + ' might result into ' + rationalize(_r))
+    if (gcd(_r[0], _r[1]) > 1) {
+        ops.push(_r)
+    }
+
     const e: ExtensionExpression = {
         type: 'ADD_FRACTION',
         extensions: [
             {
                 operands: ops,
-                value: v
+                value: <[number, number]>expression.value
             }
         ]
     }
-    exercise.extension = e
-    return exercise
+    return e
 }
 
 /**

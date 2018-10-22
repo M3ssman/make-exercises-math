@@ -35,6 +35,11 @@ describe('Rational Functions', function () {
         const expected1: Fraction = [2, 1]
         assert.deepEqual(actual1, expected1)
     });
+    it('add rationales: 2/3 + 4/11 => 34/33', () => {
+        const actual1: Fraction = addFraction([2, 3], [4, 11])
+        const expected1: Fraction = [34, 33]
+        assert.deepEqual(actual1, expected1)
+    });
 });
 
 /**
