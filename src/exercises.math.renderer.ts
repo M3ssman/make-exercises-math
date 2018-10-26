@@ -2,34 +2,19 @@ import {
     Expression,
     Exercise,
     Extension,
-    N,
-    Q,
-    funcMap
+    funcMap,
+    ExtensionExpression
 } from './exercises.math';
 
-/**
- * Basic Binary Functions
- */
-// export function addN(a: number, b: number): number {  
-//     return a + b 
-// }
-// export function addQ(a: Q, b: Q): Q { return a}
-// export function sub(a: number, b: number): number { return a - b }
-// export function mult(a: number, b: number): number { return a * b }
-// export function div(a: number, b: number): number { return a / b }
-
-// export interface OpEntry {
-//     label: string;
-//     func: (a: number, b: number) => number;
-// }
-// export const funcMap: { [key: string]: OpEntry } = {
-//     'addN': { label: '+', func: addN },
-//     'sub': { label: '-', func: sub },
-//     'mult': { label: '*', func: mult },
-//     'div': { label: ':', func: mult }
-// };
-
-export type RenderedType = 'FIRST_ROW' | 'OPERAND' | 'INTERMEDIATE' | 'CARRY' | 'VALUE'
+export type RenderedType =
+    'FIRST_ROW'
+    | 'OPERAND'
+    | 'INTERMEDIATE'
+    | 'CARRY'
+    | 'VALUE'
+    | 'FRACTION_NOMINATOR'
+    | 'FRACTION_STRIKE'
+    | 'FRACTION_DENOMINATOR'
 
 export interface Rendered {
     rendered: string
@@ -276,12 +261,12 @@ function replaceLeadingZeros(s: string, index?: number): string {
 export function renderExtensionsDivEven(exercise: Exercise): Exercise {
     let result: Rendered[] = [];
     if (_isValid(exercise)) {
-        const expr = exercise.expression;
+        const _expr = exercise.expression;
         const gap = '  '
-        const dividend = expr.operands[0];
-        const divisor = expr.operands[1];
-        const firstRow = gap + dividend.toString() + ' : ' + divisor + ' = ' + expr.value;
-        result.push({ rendered: firstRow, type: 'FIRST_ROW' });
+        const dividend = _expr.operands[0];
+        const divisor = _expr.operands[1];
+        const first = gap + dividend.toString() + ' : ' + divisor + ' = ' + _expr.value;
+        result.push({ rendered: first, type: 'FIRST_ROW' });
         if (exercise.extension.extensions.length > 0) {
             const gapMap: { [key: number]: number } = {}
             exercise.extension.extensions
@@ -293,7 +278,7 @@ export function renderExtensionsDivEven(exercise: Exercise): Exercise {
 }
 
 function _isValid(exercise: Exercise) {
-    return exercise.expression && exercise.extension;
+    return exercise && exercise.expression && exercise.extension;
 }
 
 const signToken = '- '
@@ -379,10 +364,109 @@ function _exchangeSign(m: string): string {
     return _r
 }
 
-function _fillSpace(i: number): string {
+// function _fillSpace(i: number): string {
+//     let _space = ''
+//     for (let _i = 0; _i < i; _i++) {
+//         _space += ' '
+//     }
+//     return _space
+// }
+
+function _fillWith(t: string, i: number): string {
     let _space = ''
     for (let _i = 0; _i < i; _i++) {
-        _space += ' '
+        _space += t
     }
     return _space
+}
+
+const _fillSpace: (i: number) => string = _fillWith.bind(null, ' ')
+const _fillLine: (i: number) => string = _fillWith.bind(null, '-')
+
+/**
+ * Rendering API Fraction Addition
+ * @param exercise 
+ */
+export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
+    let result: Rendered[] = [];
+    if (!_isValid(exercise)) {
+        console.error('return invalid exercise ' + JSON.stringify(exercise) + ', no Fraction Renderings done!')
+        return exercise
+    }
+
+    const _expr: Expression = exercise.expression
+    const _exts: [number, number][] = <[number, number][]>exercise.extension.extensions[0].operands
+    const _val = exercise.extension.extensions[0].value
+
+    // prepare all 3 rendered rows
+    let first = '', secon = '', third = ''
+
+    // prepare tokens
+    const t0 = { n: _expr.operands[0][0].toString(), d: _expr.operands[0][1].toString() }
+    const t1 = { n: _expr.operands[1][0].toString(), d: _expr.operands[1][1].toString() }
+    const t2 = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')+(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
+    const t3 = { n: _exts[3][0] + '+' + _exts[3][1], d: _exts[4][0].toString() }
+    const t4 = _exts[5] ? { n: _exts[5][0].toString(), d: _exts[5][1].toString() } : undefined
+
+    // prepare spaces
+    const t0abs = Math.abs(t0.n.length-t0.d.length)
+    let sn0 = t0.n.length === t0.d.length ? 0 : t0abs
+    let lt0 = t0.n.length > t0.d.length ? t0.n.length : t0.d.length
+    let sd0 = t0.n.length > t0.d.length ? t0abs : 0
+
+    const t1abs = Math.abs(t1.n.length-t1.d.length)
+    let sn1 = t1.n.length === t1.d.length ? 0 : 1
+    let lt1 = t1.n.length > t1.d.length ? t1.n.length : t1.d.length
+    let sd1 = t1.n.length > t1.d.length ? t1abs : 0
+
+    // third term
+    let sn2 = t2.n.length === t2.d.length ? 0 : 1
+    let lt2 = t2.n.length > t2.d.length ? t2.n.length : t2.d.length
+    let sd2 = 0
+    if (t2.n.length !== t2.d.length) {
+        sd2 = Math.ceil(t2.n.length / 2) - Math.ceil(t2.d.length / 2)
+    }
+
+    // fourth term
+    let sn3 = t3.n.length === t3.d.length ? 0 : 1
+    let lt3 = t3.n.length > t3.d.length ? t3.n.length : t3.d.length
+    let sd3 = 0 
+    if (t3.n.length !== t3.d.length) {
+        sd3 = Math.floor(t3.n.length / 2) - Math.ceil(t3.d.length / 2)
+    }
+    // some special case with rather short strikes
+    const sd3WasOdd: boolean = t3.n.length % 2 === 1
+    const someExtraSpace = sd3WasOdd ? 1 : 0
+
+    first = _fillSpace(sn0) + t0.n + ' ' + _fillSpace(sn1) + t1.n + ' ' + t2.n + ' ' + t3.n
+    secon = _fillLine(lt0) + '+' + _fillLine(lt1) + '=' + _fillLine(lt2) + '=' + _fillLine(lt3)
+    third = _fillSpace(sd0) + t0.d + ' ' + _fillSpace(sd1) + t1.d + ' ' + _fillSpace(sd2) + t2.d + _fillSpace(sd2) + ' ' +_fillSpace(sd3) + t3.d + _fillSpace(sd3+someExtraSpace) 
+    
+    // possible shortening term
+    if (t4) {
+        let sn4 = t4.n.length === t4.d.length ? 0 : 1
+        let lt4 = t4.n.length > t4.d.length ? t4.n.length : t4.d.length
+        let sd4 = t4.n.length === t4.d.length ? 0 : 1
+        first = first + ' ' + t4.n
+        secon = secon + '=' + _fillLine(lt4)
+        third = third + ' ' + t4.d
+    }
+
+    let vn = _val[0].toString().length === _val[0].toString().length ? 0 : 1
+    let vl = _val[0].toString().length > _val[1].toString().length ? _val[0].toString().length : _val[1].toString().length
+    let vd = _val[1].toString().length === _val[1].toString().length ? 0 : 1
+    first = first + ' ' + _val[0]
+    secon = secon + '=' + _fillLine(vl)
+    third = third + ' ' + _val[1]
+
+    result.push({ rendered: first, type: 'FRACTION_NOMINATOR' });
+    result.push({ rendered: secon, type: 'FRACTION_STRIKE' });
+    result.push({ rendered: third, type: 'FRACTION_DENOMINATOR' });
+
+    // sanitize
+    if (!Array.isArray(exercise.rendered)) {
+        exercise.rendered = []
+    }
+    exercise.rendered = exercise.rendered.concat(result);
+    return exercise;
 }

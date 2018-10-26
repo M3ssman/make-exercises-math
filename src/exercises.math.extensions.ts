@@ -372,9 +372,8 @@ export function createExtensionAddFraction(expression: Expression): ExtensionExp
     ops.push([s1[0], s2[1]], [s1[1], s2[0]], [s1[1], s2[1]])
     const _d = s1[1] * s2[1]
     ops.push([s1[0] * s2[1], s2[0] * s1[1]], _d)
-    // handling possible kuerzen
+    // handle possible kuerzen
     const _r: Fraction = [s1[0] * s2[1] + s2[0] * s1[1], _d]
-    console.log('### CALC gcd ' + gcd(_r[0], _r[1]) + ' might result into ' + rationalize(_r))
     if (gcd(_r[0], _r[1]) > 1) {
         ops.push(_r)
     }

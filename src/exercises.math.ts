@@ -9,7 +9,8 @@ import {
     renderExtensionsAdditionCarry,
     renderExtensionsSubtractionCarry,
     renderExtensionsMultiplication,
-    renderExtensionsDivEven
+    renderExtensionsDivEven,
+    renderExtensionFractionAdd
 } from './exercises.math.renderer';
 import {
     Extensioneer,
@@ -136,6 +137,7 @@ const rendererMap: { [key: string]: Renderer } = {
     'ADD_CARRY': renderExtensionsAdditionCarry,
     'SUB_CARRY': renderExtensionsSubtractionCarry,
     'MULT_MULT': renderExtensionsMultiplication,
+    'ADD_FRACTION' : renderExtensionFractionAdd,
     'SINGLE_LINE': renderDefault
 }
 

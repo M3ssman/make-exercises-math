@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { 
+import {
     Exercise,
     Extension
 } from '../src/exercises.math';
@@ -7,6 +7,8 @@ import {
     _exchangeTrailingZeros,
     renderExtensionsMultiplication,
     renderExtensionsDivEven,
+    renderExtensionFractionAdd,
+    Rendered,
     _calculateGap
 } from '../src/exercises.math.renderer'
 
@@ -16,25 +18,70 @@ import {
 describe('Renderer Functions', function () {
 
     it('_exchangeTrailingZeros ([0,0,1])', () => {
-        const actual =_exchangeTrailingZeros([0,0,1],false);
+        const actual = _exchangeTrailingZeros([0, 0, 1], false);
         assert.equal(actual, '  1');
     });
 
     it('_exchangeTrailingZeros ([0,0])', () => {
-        const actual =_exchangeTrailingZeros([0,0],false);
+        const actual = _exchangeTrailingZeros([0, 0], false);
         assert.equal(actual, ' 0');
     });
 
     it('_exchangeTrailingZeros ([0,0], true)', () => {
-        const actual =_exchangeTrailingZeros([0,0],true);
+        const actual = _exchangeTrailingZeros([0, 0], true);
         assert.equal(actual, '00');
     });
 
     it('_exchangeTrailingZeros ([0,6], true)', () => {
-        const actual =_exchangeTrailingZeros([0,6],true);
+        const actual = _exchangeTrailingZeros([0, 6], true);
         assert.equal(actual, '06');
     });
 });
+
+
+/**
+ * Fraction Addition Render API
+ */
+describe('Render Addition of Fractions', () => {
+    it('should render nothing for "undefined"', () => {
+        assert.isUndefined(renderExtensionFractionAdd(undefined))
+    })
+
+    const exercise01: Exercise = {
+        expression: { operations: ['ADD_FRACTION'], operands: [[2, 3], [1, 6]], value: [5, 6] },
+        extension: {
+            type: 'ADD_FRACTION',
+            extensions: [{
+                operands: [[2, 6], [3, 1], [3, 6], [12, 3], [18], [15, 18]], value: [5, 6]
+            }]
+        }
+    }
+    it('should render :' + JSON.stringify(exercise01), () => {
+        const actuals: Rendered[] = renderExtensionFractionAdd(exercise01).rendered
+        assert.isArray(actuals)
+        assert.equal(actuals[0].rendered, '2 1 (2*6)+(3*1) 12+3 15 5')
+        assert.equal(actuals[1].rendered, '-+-=-----------=----=--=-')
+        assert.equal(actuals[2].rendered, '3 6     3*6      18  18 6')
+    })
+
+    const exercise02: Exercise = {
+        expression: { operations: ['ADD_FRACTION'], operands: [[2, 3], [4, 11]], value: [34, 33] },
+        extension: {
+            type: 'ADD_FRACTION',
+            extensions: [{
+                operands: [[2, 11], [3, 4], [3, 11], [22, 12], [33]], value: [34, 33]
+            }]
+        }
+    }
+    it('should render :' + JSON.stringify(exercise02), () => {
+        const actuals: Rendered[] = renderExtensionFractionAdd(exercise02).rendered
+        console.error('#HAVING rendered : ' + JSON.stringify(actuals))
+        assert.isArray(actuals)
+        assert.equal(actuals[0].rendered, '2  4 (2*11)+(3*4) 22+12 34')
+        assert.equal(actuals[1].rendered, '-+--=------------=-----=--')
+        assert.equal(actuals[2].rendered, '3 11     3*11      33   33')
+    })
+})
 
 /**
  * Multiplication Render API
@@ -102,13 +149,13 @@ describe('Render Division even', function () {
             extension: {
                 type: 'DIV_EVEN',
                 extensions: [{
-                    operands: [[2,6], [2,2]], value: [0,4]
+                    operands: [[2, 6], [2, 2]], value: [0, 4]
                 },
                 {
-                    operands: [[4,0], [3,3]], value: [0,7]
+                    operands: [[4, 0], [3, 3]], value: [0, 7]
                 },
                 {
-                    operands: [[7,7], [7,7]], value: [0,0]
+                    operands: [[7, 7], [7, 7]], value: [0, 0]
                 }]
             }
         }
@@ -132,10 +179,10 @@ describe('Render Division even', function () {
             extension: {
                 type: 'DIV_EVEN',
                 extensions: [{
-                    operands: [[6,0], [5,5]], value: [0,5]
+                    operands: [[6, 0], [5, 5]], value: [0, 5]
                 },
                 {
-                    operands: [[5,5], [5,5]], value: [0,0]
+                    operands: [[5, 5], [5, 5]], value: [0, 0]
                 }]
             }
         }
@@ -157,7 +204,7 @@ describe('Render Division even', function () {
             extension: {
                 type: 'DIV_EVEN',
                 extensions: [{
-                    operands: [[9,9], [9,9]], value: [0,0]
+                    operands: [[9, 9], [9, 9]], value: [0, 0]
                 },
                 {
                     operands: [[0], [0]], value: [0]
@@ -182,10 +229,10 @@ describe('Render Division even', function () {
             extension: {
                 type: 'DIV_EVEN',
                 extensions: [{
-                    operands: [[9,0], [8,8]], value: [0,2]
+                    operands: [[9, 0], [8, 8]], value: [0, 2]
                 },
                 {
-                    operands: [[2,2], [2,2]], value: [0,0]
+                    operands: [[2, 2], [2, 2]], value: [0, 0]
                 }]
             }
         }
