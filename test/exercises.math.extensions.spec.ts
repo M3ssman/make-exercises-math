@@ -41,6 +41,23 @@ describe('Extension Functions', () => {
 
 
 describe('Extension API', function () {
+    it('9/8 + 5/12 = (9*12 + 8*5)/(8*12) = 37/24', () => {
+        const expr: Expression = {
+            operations: ['add'],
+            operands:[[9,8], [5,12]],
+            value: [37, 24]
+        };
+        const ee: ExtensionExpression = extendAddFraction({ expression: expr }).extension;
+        assert.equal(ee.extensions[0].operands.length, 6)
+        assert.equal(ee.extensions[0].operands[0].toString(), '9,12');
+        assert.equal(ee.extensions[0].operands[1].toString(), '8,5');
+        assert.equal(ee.extensions[0].operands[2].toString(), '8,12');
+        assert.equal(ee.extensions[0].operands[3].toString(), '108,40');
+        assert.equal(ee.extensions[0].operands[4].toString(), '96');
+        assert.equal(ee.extensions[0].operands[5].toString(), '148,96');
+        assert.equal(ee.extensions[0].value.toString(), '37,24');
+    });
+
     it('2/3 + 4/11 = (2*11 + 4*3)/(3*11) = 34/33', () => {
         const expr: Expression = {
             operations: ['add'],

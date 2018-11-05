@@ -405,7 +405,9 @@ export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
     const t0 = { n: _expr.operands[0][0].toString(), d: _expr.operands[0][1].toString() }
     const t1 = { n: _expr.operands[1][0].toString(), d: _expr.operands[1][1].toString() }
     const t2 = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')+(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
-    const t3 = { n: _exts[3][0] + '+' + _exts[3][1], d: _exts[4][0].toString() }
+    // attention! beware of plain numbers!
+    const _d4 = _exts[4] instanceof Array ? _exts[4][0].toString() : _exts[4]
+    const t3 = { n: _exts[3][0] + '+' + _exts[3][1], d:  _d4}
     const t4 = _exts[5] ? { n: _exts[5][0].toString(), d: _exts[5][1].toString() } : undefined
 
     // prepare spaces

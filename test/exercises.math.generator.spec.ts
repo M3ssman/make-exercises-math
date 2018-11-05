@@ -70,7 +70,7 @@ describe('Generation with Constraints', () => {
         const x = expr.operands[0];
         const y: [number, number] = <[number, number]>expr.operands[1];
         assert.isTrue(x >= [1, 2], 'expect x >= 1/2, but x was ' + x);
-        assert.deepEqual<[number, number]>(y, [2, 4])
+        assert.deepEqual<[number, number]>(y, [1, 2])
         assert.deepEqual<[number, number]>(<[number, number]>expr.value, [5, 4])
     });
 
@@ -120,5 +120,42 @@ describe('Generation with Constraints', () => {
         assert.isTrue(y[0] >= ye_0[0] && y[0] <= ye_1[0], 'expect y: ' + ye_0 + ' <= ' + y + ' <= ' + ye_1)
     });
 
-    // TODO corner case x = 1/1
+    
+   it('generate Expression with x_1 in  [1/8 .. 16/8] and x_2 in [1/12 .. 24/12]', () => {
+    const operandConstraints: Constraint[] = [
+        { rangeQ: { min: [1, 8], max: [16, 8] } },
+        { rangeQ: { min: [1, 12], max: [24, 12] } }
+    ]
+
+    const expr: Expression = generateRationalExpression([addFraction], operandConstraints, {})
+    assert.exists(expr)
+
+    const dx = 8, dy = 12
+    let x: [number, number] = <[number, number]>expr.operands[0]
+    let y: [number, number] = <[number, number]>expr.operands[1]
+    const _dx = x[1], _dy = y[1]
+
+    // sanitze x if 1/1
+    if (x[0] === 1 && x[1] === 1) {
+        x = [dx, dx]
+    }
+    // compare bounds
+    let xe_0 = [1, dx], xe_1 = [16, dx]
+    let ye_0 = [1, dy], ye_1 = [24, dy]
+    // make same denominator
+    if (x[1] !== xe_0[1]) {
+        xe_0 = [xe_0[0] * _dx, xe_0[1] * _dx]
+        xe_1 = [xe_1[0] * _dx, xe_1[1] * _dx]
+        x = [x[0] * dx, _dx * dx]
+    }
+    if (y[1] !== ye_0[1]) {
+        ye_0 = [ye_0[0] * _dy, ye_0[1] * _dy]
+        ye_1 = [ye_1[0] * _dy, ye_1[1] * _dy]
+        y = [y[0] * dy, _dy * dy]
+    }
+    assert.isTrue(x[0] >= xe_0[0] && x[0] <= xe_1[0], 'expect x: ' + xe_0 + ' <= ' + x + ' <= ' + xe_1);
+    assert.isTrue(y[0] >= ye_0[0] && y[0] <= ye_1[0], 'expect y: ' + ye_0 + ' <= ' + y + ' <= ' + ye_1)
+});
+
+   // TODO corner case x = 1/1
 });

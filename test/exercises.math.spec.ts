@@ -15,7 +15,8 @@ import {
     mult_N999_N9,
     mult_N999_N99,
     mult_N999_N999,
-    div_even
+    div_even,
+    add_fraction
 } from '../src/exercises.math.options';
 import {
     Rendered
@@ -38,6 +39,11 @@ describe('Rational Functions', function () {
     it('add rationales: 2/3 + 4/11 => 34/33', () => {
         const actual1: Fraction = addFraction([2, 3], [4, 11])
         const expected1: Fraction = [34, 33]
+        assert.deepEqual(actual1, expected1)
+    });
+    it('add rationales: 14/8 + 8/12 => 29/12', () => {
+        const actual1: Fraction = addFraction([14, 8], [8, 12])
+        const expected1: Fraction = [29, 12]
         assert.deepEqual(actual1, expected1)
     });
 });
@@ -488,6 +494,37 @@ describe('Division without rest API', function () {
             const actualExtensions = exercise.extension.extensions;
             assert.isNotEmpty(actualExtensions);
         }
+    });
+})
+
+describe('Add Fraction API', function () {
+    it('should generate add fractions in q_1 {1/8 .. 16/8} and q_2 {1/12 .. 24/12}', async function () {
+        const sets = await makeSet([add_fraction])
+        assert.isTrue(sets[0].exercises.length === 8)
+        for (let f = 0; f < sets[0].exercises.length; f++) {
+            const exercise = sets[0].exercises[f];
+            assert.isNotNull(exercise.expression.value);
+            const actualExtensions = exercise.extension.extensions;
+            assert.isNotEmpty(actualExtensions);
+        }
+    });
+
+    it('should generate an add fractions 13/8 + 7/4 = 27/8', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'ADD_FRACTION',
+            operations: ['addQ'],
+            operands: [
+                { exactMatchOf: [13,8] },
+                { exactMatchOf: [7,4] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '13 7 (13*4)+(8*7) 52+56 108 27')
+        assert.equal(rs[1].rendered, '--+-=------------=-----=---=--')
+        assert.equal(rs[2].rendered, ' 8 4     8*4       32    32  8')
     });
 
 });

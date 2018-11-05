@@ -75,7 +75,6 @@ describe('Render Addition of Fractions', () => {
     }
     it('should render :' + JSON.stringify(exercise02), () => {
         const actuals: Rendered[] = renderExtensionFractionAdd(exercise02).rendered
-        console.error('#HAVING rendered : ' + JSON.stringify(actuals))
         assert.isArray(actuals)
         assert.equal(actuals[0].rendered, '2  4 (2*11)+(3*4) 22+12 34')
         assert.equal(actuals[1].rendered, '-+--=------------=-----=--')

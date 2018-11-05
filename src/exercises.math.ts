@@ -1,6 +1,7 @@
 import {
     generateExpression,
     generateDivisionWithRest,
+    generateRationalExpression,
 } from './exercises.math.generator';
 import {
     Renderer,
@@ -35,8 +36,8 @@ export type Z = N;
 export type Q = [N, N];
 export type Fraction = [number, number];
 export type MixedNumeral = [number, Fraction];
-export type Set = "Q" | "Z" | "N";
-export type Operation = "add" | "sub" | "mult" | "div";
+export type Set = 'Q' | 'Z' | 'N';
+export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ';
 
 /**
  * What kind of Extension to generate
@@ -170,9 +171,15 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
                 const _props: Properties = option;
                 const _q = option.quantity || 12;
                 for (let i = 0; i < _q; i++) {
-                    const functs: ((a: number, b: number) => number)[] = option.operations.map(operation => funcMap[operation].func);
+                    let _funcMap: any = funcMap
+                    let _generatorFunc:any = generateExpression
+                    if(option.set === 'Q') {
+                        _funcMap = funcMapQ
+                        _generatorFunc = generateRationalExpression
+                    }
+                    const functs = option.operations.map(operation => _funcMap[operation].func);
                     if (functs.length > 0) {
-                        let exp: Expression = generateExpression(functs, option.operands, option.result);
+                        let exp: Expression = _generatorFunc(functs, option.operands, option.result);
                         _exercises.push({ expression: exp, rendered: [] });
                     }
                 }
@@ -259,12 +266,21 @@ export interface OpEntry {
     func: (a: number, b: number) => number;
 }
 
+export interface OpEntryQ {
+    label: string;
+    func: (a: Fraction, b: Fraction) => Fraction;
+}
+
 export const funcMap: { [key: string]: OpEntry } = {
     'add': { label: '+', func: add },
     'sub': { label: '-', func: sub },
     'mult': { label: '*', func: mult },
-    'div': { label: ':', func: mult }
+    'div': { label: ':', func: mult },
 };
+
+export const funcMapQ: {[key:string]: OpEntryQ} = {
+    'addQ' : { label: '+', func: addFraction }
+}
 
 export function addFraction(a: Fraction, b: Fraction): Fraction { 
     const _sum: [number,number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]

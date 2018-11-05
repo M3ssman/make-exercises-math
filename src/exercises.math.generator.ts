@@ -133,7 +133,7 @@ export function generateRationalExpression(
         }
 
         nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
-        r = (operations[0])(x, y);
+        r = rationalize((operations[0])(x, y));
 
         // build expression
         (<Fraction[]>expression.operands).push(x, y);
@@ -180,6 +180,10 @@ export function generateRationalExpression(
             throw new Error('No valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
         }
     } while (loop_again);
+    if (expression.operands) {
+        const _tmp: [number, number][] = <[number, number][]>expression.operands
+        expression.operands = _tmp.map((op: [number, number]) => rationalize(op))
+    }
     return expression;
 }
 
@@ -239,6 +243,10 @@ function _getNumber(constraint?: Constraint): number | Fraction {
         return __generateN(100, 1).next().value;
     }
 
+    if (constraint.exactMatchOf) {
+        return constraint.exactMatchOf;
+    }
+
     if (constraint.rangeN) {
         do {
             result = __generateN(constraint.rangeN.max, constraint.rangeN.min).next().value;
@@ -261,9 +269,7 @@ function _getNumber(constraint?: Constraint): number | Fraction {
                 throw new Error('Unable to generate Fraction within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
             }
         } while (!__checkSingleConstraint(result, constraint))
-    } else if (constraint.exactMatchOf) {
-        return constraint.exactMatchOf;
-    }
+    }  
     return result;
 }
 
@@ -292,7 +298,7 @@ function* __generateQ(to: [number, number], from?: [number, number]): IterableIt
             let n = _gen(from[0], to[0])
             let d = to[1]
             yield [n, d];
-        } else { // denominator dont match
+        } else { // denominators do not match
             const _d = from[1] * to[1]
             const _to = [to[0] * from[1], _d]
             const _from = [from[0] * to[1], _d]

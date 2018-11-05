@@ -210,3 +210,14 @@ export const div_even: Options = {
         { rangeN: { min: 2, max: 12 } },
     ]
 };
+
+export const add_fraction: Options = {
+    quantity: 8,
+    set: 'Q',
+    extension: 'ADD_FRACTION',
+    operations: ['addQ'],
+    operands: [
+        { rangeQ: { min: [1,8], max: [16,8] } },
+        { rangeQ: { min: [1,12], max: [24,12] } },
+    ]
+};
