@@ -21,7 +21,7 @@ export interface Maskeer {
 export const DEFAULT_MASK = '?'
 
 export function mask(exercise: Exercise, replacer: MaskType): Exercise {
-    if (exercise.rendered) {
+    if (exercise.rendered && exercise.extension) {
         const _type: ExtensionType = exercise.extension.type
         if (_type) {
             const _r: Rendered[] = exercise.rendered

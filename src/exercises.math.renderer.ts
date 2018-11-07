@@ -77,7 +77,7 @@ export function renderDefault(exercise: Exercise): Exercise {
  */
 export function renderExtensionsAdditionCarry(exercise: Exercise): Exercise {
     let result: Rendered[];
-    if (exercise.expression.operands && exercise.expression.value) {
+    if (exercise.expression.operands && exercise.expression.value && exercise.extension) {
         const str_op = funcMap[exercise.expression.operations[0]].label;
         const str_ops: string[] = (<number[]>exercise.expression.operands).map(o => o.toString());
 
@@ -364,14 +364,6 @@ function _exchangeSign(m: string): string {
     return _r
 }
 
-// function _fillSpace(i: number): string {
-//     let _space = ''
-//     for (let _i = 0; _i < i; _i++) {
-//         _space += ' '
-//     }
-//     return _space
-// }
-
 function _fillWith(t: string, i: number): string {
     let _space = ''
     for (let _i = 0; _i < i; _i++) {
@@ -388,6 +380,14 @@ const _fillLine: (i: number) => string = _fillWith.bind(null, '-')
  * @param exercise 
  */
 export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
+    return renderExtensionFraction(exercise, '+')
+}
+
+export function renderExtensionFractionSub(exercise: Exercise): Exercise {
+    return renderExtensionFraction(exercise, '-')
+}
+
+function renderExtensionFraction(exercise:Exercise, sign: string) {
     let result: Rendered[] = [];
     if (!_isValid(exercise)) {
         console.error('return invalid exercise ' + JSON.stringify(exercise) + ', no Fraction Renderings done!')
@@ -417,7 +417,7 @@ export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
 
 
     // 3rd term: (extension 0 + extension 1 ) / extension 2
-    const term3: FractionToken = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')+(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
+    const term3: FractionToken = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')'+sign+'(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
     let sn2 = calculate_additional_space(term3.n.length, term3.d.length)
     let lt2 = term3.n.length > term3.d.length ? term3.n.length : term3.d.length
     let sd2 = calculate_additional_space(term3.d.length, term3.n.length)
@@ -428,7 +428,7 @@ export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
     // 4th term: extension 3 / extension 4
     // attention! beware of plain numbers for denominator!
     const _d4 = _exts[4] instanceof Array ? _exts[4][0].toString() : _exts[4].toString()
-    const term4: FractionToken = { n: _exts[3][0] + '+' + _exts[3][1], d: _d4 }
+    const term4: FractionToken = { n: _exts[3][0] + sign + _exts[3][1], d: _d4 }
     let sn3 = term4.n.length === term4.d.length ? 0 : 1
     let lt3 = term4.n.length > term4.d.length ? term4.n.length : term4.d.length
     let sd3 = 0
@@ -437,7 +437,7 @@ export function renderExtensionFractionAdd(exercise: Exercise): Exercise {
     }
 
     first = _fillSpace(sn0) + s1.n + ' ' + _fillSpace(sn1) + s2.n + ' ' + _fillSpace(sn2) + term3.n 
-    secon = _fillLine(lt0) + '+' + _fillLine(lt1) + '=' + _fillLine(lt2) 
+    secon = _fillLine(lt0) + sign + _fillLine(lt1) + '=' + _fillLine(lt2) 
     third = _fillSpace(sd0) + s1.d + ' ' + _fillSpace(sd1) + s2.d + ' ' + _fillSpace(sd2) + term3.d 
     if(third.length < first.length) {
         third = third + _fillSpace(first.length - third.length)

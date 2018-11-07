@@ -3,8 +3,7 @@ import {
     Exercise,
     Extension,
     ExtensionExpression,
-    Fraction,
-    MixedNumeral
+    Fraction
 } from './exercises.math';
 
 /** 
@@ -364,28 +363,25 @@ export function extendAddFraction(exercise: Exercise): Exercise {
     exercise.extension = createExtensionAddFraction(_e)
     return exercise
 }
-
-export function createExtensionAddFraction(expression: Expression): ExtensionExpression {
+function createExtensionAddFraction(expression: Expression): ExtensionExpression {
     let ops = []
-    const s1: Fraction = <Fraction>expression.operands[0]
-    const s2: Fraction = <Fraction>expression.operands[1]
-    ops.push([s1[0], s2[1]], [s1[1], s2[0]], [s1[1], s2[1]])
-    const _d = s1[1] * s2[1]
-    ops.push([s1[0] * s2[1], s2[0] * s1[1]], _d)
+    const s: Fraction = <Fraction>expression.operands[0]
+    const m: Fraction = <Fraction>expression.operands[1]
+    ops.push([s[0], m[1]], [s[1], m[0]], [s[1], m[1]])
+    const _d = s[1] * m[1]
+    ops.push([s[0] * m[1], m[0] * s[1]], _d)
     // handle possible kuerzen
-    const _r: Fraction = [s1[0] * s2[1] + s2[0] * s1[1], _d]
+    const _r: Fraction = [s[0] * m[1] + m[0] * s[1], _d]
     if (gcd(_r[0], _r[1]) > 1) {
         ops.push(_r)
     }
 
     const e: ExtensionExpression = {
         type: 'ADD_FRACTION',
-        extensions: [
-            {
-                operands: ops,
-                value: <[number, number]>expression.value
-            }
-        ]
+        extensions: [{
+            operands: ops,
+            value: <[number, number]>expression.value
+        }]
     }
     return e
 }
@@ -411,26 +407,30 @@ export function gcd(a: number, b: number): number {
     }
     return a;
 }
-export function rationalize(f: Fraction): Fraction {
-    const [a, b] = f;
-    const _gcd = gcd(a, b);
-    if (_gcd > 1) {
-        return [a / _gcd, b / _gcd];
-    }
-    return f;
+
+export function extendSubFraction(exercise: Exercise): Exercise {
+    const _e: Expression = exercise.expression
+    exercise.extension = createExtensionSubFraction(_e)
+    return exercise
 }
-export function canonize(f: Fraction): MixedNumeral {
-    const [n, d] = f;
-    // cornercase denominNator === 1, since n % 1 => 0
-    if (d === 1) {
-        return [n, [n, d]];
+function createExtensionSubFraction(expression: Expression): ExtensionExpression {
+    let ops = []
+    const s: Fraction = <Fraction>expression.operands[0]
+    const m: Fraction = <Fraction>expression.operands[1]
+    ops.push([s[0], m[1]], [s[1], m[0]], [s[1], m[1]])
+    const _d = s[1] * m[1]
+    ops.push([s[0] * m[1], m[0] * s[1]], _d)
+    // handle possible kuerzen
+    const _r: Fraction = [s[0] * m[1] - m[0] * s[1], _d]
+    if (gcd(_r[0], _r[1]) > 1) {
+        ops.push(_r)
     }
-    const diff = n % d;
-    let i = 0;
-    let _n = n;
-    while (_n > d) {
-        _n -= d;
-        i++;
+    const e: ExtensionExpression = {
+        type: 'SUB_FRACTION',
+        extensions: [{
+            operands: ops,
+            value: <[number, number]>expression.value
+        }]
     }
-    return [i, [_n, d]];
+    return e
 }

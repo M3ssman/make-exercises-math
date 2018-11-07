@@ -11,7 +11,8 @@ import {
     renderExtensionsSubtractionCarry,
     renderExtensionsMultiplication,
     renderExtensionsDivEven,
-    renderExtensionFractionAdd
+    renderExtensionFractionAdd,
+    renderExtensionFractionSub
 } from './exercises.math.renderer';
 import {
     Extensioneer,
@@ -20,7 +21,9 @@ import {
     extendSubCarry,
     extendMultCarry,
     extendDivEven,
-    extendAddFraction
+    extendAddFraction,
+    extendSubFraction,
+    gcd
 } from './exercises.math.extensions';
 import {
     mask
@@ -32,12 +35,10 @@ import {
  * 
  */
 export type N = number[];
-export type Z = N;
 export type Q = [N, N];
 export type Fraction = [number, number];
-export type MixedNumeral = [number, Fraction];
-export type Set = 'Q' | 'Z' | 'N';
-export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ';
+export type Set = 'Q' | 'N';
+export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ' | 'subQ';
 
 /**
  * What kind of Extension to generate
@@ -50,6 +51,7 @@ export type ExtensionType =
     | 'MULT_MULT'
     | 'DIV_EVEN'
     | 'ADD_FRACTION'
+    | 'SUB_FRACTION'
 
 export type MaskType =
     ''
@@ -130,7 +132,8 @@ const extensioneerMap: { [key: string]: Extensioneer } = {
     'DIV_EVEN': extendDivEven,
     'SUB_CARRY': extendSubCarry,
     'MULT_MULT': extendMultCarry,
-    'ADD_FRACTION': extendAddFraction
+    'ADD_FRACTION': extendAddFraction,
+    'SUB_FRACTION': extendSubFraction
 }
 
 const rendererMap: { [key: string]: Renderer } = {
@@ -138,7 +141,8 @@ const rendererMap: { [key: string]: Renderer } = {
     'ADD_CARRY': renderExtensionsAdditionCarry,
     'SUB_CARRY': renderExtensionsSubtractionCarry,
     'MULT_MULT': renderExtensionsMultiplication,
-    'ADD_FRACTION' : renderExtensionFractionAdd,
+    'ADD_FRACTION': renderExtensionFractionAdd,
+    'SUB_FRACTION': renderExtensionFractionSub,
     'SINGLE_LINE': renderDefault
 }
 
@@ -172,8 +176,8 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
                 const _q = option.quantity || 12;
                 for (let i = 0; i < _q; i++) {
                     let _funcMap: any = funcMap
-                    let _generatorFunc:any = generateExpression
-                    if(option.set === 'Q') {
+                    let _generatorFunc: any = generateExpression
+                    if (option.set === 'Q') {
                         _funcMap = funcMapQ
                         _generatorFunc = generateRationalExpression
                     }
@@ -259,7 +263,6 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
 export function add(a: number, b: number): number { return a + b }
 export function sub(a: number, b: number): number { return a - b }
 export function mult(a: number, b: number): number { return a * b }
-export function div(a: number, b: number): number { return a / b }
 
 export interface OpEntry {
     label: string;
@@ -278,39 +281,21 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult },
 };
 
-export const funcMapQ: {[key:string]: OpEntryQ} = {
-    'addQ' : { label: '+', func: addFraction }
+export const funcMapQ: { [key: string]: OpEntryQ } = {
+    'addQ': { label: '+', func: addFraction },
+    'subQ': { label: '-', func: subFraction }
 }
 
-export function addFraction(a: Fraction, b: Fraction): Fraction { 
-    const _sum: [number,number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]
-    return rationalize(_sum) 
+export function addFraction(a: Fraction, b: Fraction): Fraction {
+    const _sum: [number, number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]
+    return rationalize(_sum)
 }
 
-/**
- * Greatest Common Divisor
- * @param a numerator
- * @param b denominNator
- */
-export function gcd(a: number, b: number): number {
-    if(a === 0 && b === 0) {
-        return 1
-    }
-    if (a < b) {
-        let smallestFit = a;
-        a = b;
-        b = smallestFit;
-    }
-    while ((a - b) > 0) {
-        a = a - b;
-        if (a < b) {
-            let smallestFit = a;
-            a = b;
-            b = smallestFit;
-        }
-    }
-    return a;
+export function subFraction(a: Fraction, b: Fraction): Fraction {
+    const _diff: [number, number] = [a[0] * b[1] - b[0] * a[1], a[1] * b[1]]
+    return rationalize(_diff)
 }
+
 export function rationalize(f: Fraction): Fraction {
     const [a, b] = f;
     const _gcd = gcd(a, b);
@@ -318,19 +303,4 @@ export function rationalize(f: Fraction): Fraction {
         return [a / _gcd, b / _gcd];
     }
     return f;
-}
-export function canonize(f: Fraction): MixedNumeral {
-    const [n, d] = f;
-    // cornercase denominNator === 1, since n % 1 => 0
-    if (d === 1) {
-        return [n, [n, d]];
-    }
-    const diff = n % d;
-    let i = 0;
-    let _n = n;
-    while (_n > d) {
-        _n -= d;
-        i++;
-    }
-    return [i, [_n, d]];
 }

@@ -1,6 +1,7 @@
 import { assert } from 'chai';
 import {
     addFraction,
+    subFraction,
     Fraction,
     Exercise,
     ExerciseSet,
@@ -25,7 +26,12 @@ import {
 /**
  * Test Exercise Functions
  */
-describe('Rational Functions', function () {
+describe('Rational Functions', () => {
+    it('sub rationales: 1/2 - 2/11 => 7/22', () => {
+        const actual1: Fraction = subFraction([1, 2], [2, 11])
+        const expected1: Fraction = [7, 22]
+        assert.deepEqual(actual1, expected1)
+    });
     it('add rationales: 1/3 + 1/4 => 13/12', () => {
         const actual1: Fraction = addFraction([1, 3], [3, 4])
         const expected1: Fraction = [13, 12]
@@ -497,7 +503,7 @@ describe('Division without rest API', function () {
     });
 })
 
-describe('Add Fraction API', function () {
+describe('Fraction API', function () {
     it('should generate add fractions in q_1 {1/8 .. 16/8} and q_2 {1/12 .. 24/12}', async function () {
         const sets = await makeSet([add_fraction])
         assert.isTrue(sets[0].exercises.length === 8)
@@ -527,4 +533,21 @@ describe('Add Fraction API', function () {
         assert.equal(rs[2].rendered, ' 8 4     8*4       32    32  8')
     });
 
+    it('should generate a sub fractions 1/2 - 2/11 = 7/22', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'SUB_FRACTION',
+            operations: ['subQ'],
+            operands: [
+                { exactMatchOf: [1,2] },
+                { exactMatchOf: [2,11] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '1  2 (1*11)-(2*2) 11-4  7')
+        assert.equal(rs[1].rendered, '----=------------=----=--')
+        assert.equal(rs[2].rendered, '2 11     2*11      22  22')
+    });
 });
