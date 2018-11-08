@@ -60,7 +60,7 @@ describe('Render Addition of Fractions', () => {
         const actuals: Rendered[] = renderExtensionFractionAdd(exercise01).rendered
         assert.isArray(actuals)
         assert.equal(actuals[0].rendered, '2 1 (2*6)+(3*1) 12+3 15 5')
-        assert.equal(actuals[1].rendered, '-+-=-----------=----=--=-')
+        assert.equal(actuals[1].rendered, '_+_=___________=____=__=_')
         assert.equal(actuals[2].rendered, '3 6     3*6      18  18 6')
     })
 
@@ -77,7 +77,7 @@ describe('Render Addition of Fractions', () => {
         const actuals: Rendered[] = renderExtensionFractionAdd(exercise02).rendered
         assert.isArray(actuals)
         assert.equal(actuals[0].rendered, '2  4 (2*11)+(3*4) 22+12 34')
-        assert.equal(actuals[1].rendered, '-+--=------------=-----=--')
+        assert.equal(actuals[1].rendered, '_+__=____________=_____=__')
         assert.equal(actuals[2].rendered, '3 11     3*11      33   33')
     })
 })

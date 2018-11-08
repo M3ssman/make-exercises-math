@@ -373,7 +373,7 @@ function _fillWith(t: string, i: number): string {
 }
 
 const _fillSpace: (i: number) => string = _fillWith.bind(null, ' ')
-const _fillLine: (i: number) => string = _fillWith.bind(null, '-')
+const _fillLine: (i: number) => string = _fillWith.bind(null, '_')
 
 /**
  * Rendering API Fraction Addition

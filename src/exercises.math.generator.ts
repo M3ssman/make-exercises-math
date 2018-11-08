@@ -132,6 +132,13 @@ export function generateRationalExpression(
             throw new Error('No Fraction y_0 generated within 10 tries!')
         }
 
+        // ensure for subraction that subtrahend is not smaller than minuend
+        if(operations[0].name === 'subQ' && isGreater(y, x)) {
+            const _t = x
+            x = y
+            y= _t
+        }
+
         nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
         r = rationalize((operations[0])(x, y));
 

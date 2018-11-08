@@ -221,3 +221,14 @@ export const add_fraction: Options = {
         { rangeQ: { min: [1,12], max: [24,12] } },
     ]
 };
+
+export const sub_fraction: Options = {
+    quantity: 8,
+    set: 'Q',
+    extension: 'SUB_FRACTION',
+    operations: ['subQ'],
+    operands: [
+        { rangeQ: { min: [1,4], max: [12,4] } },
+        { rangeQ: { min: [1,12], max: [18,12] } },
+    ]
+};

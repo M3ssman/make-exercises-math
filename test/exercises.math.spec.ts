@@ -528,9 +528,9 @@ describe('Fraction API', function () {
         }
         const sets = await makeSet([o])
         const rs: Rendered[] = sets[0].exercises[0].rendered
-        assert.equal(rs[0].rendered, '13 7 (13*4)+(8*7) 52+56 108 27')
-        assert.equal(rs[1].rendered, '--+-=------------=-----=---=--')
-        assert.equal(rs[2].rendered, ' 8 4     8*4       32    32  8')
+        assert.equal(rs[0].rendered, '13 7 (1?*?)+(?*?) ??+?? 1?? ??')
+        assert.equal(rs[1].rendered, '__+_=____________=_____=___=__')
+        assert.equal(rs[2].rendered, ' 8 4     ?*?       ??    ??  ?')
     });
 
     it('should generate a sub fractions 1/2 - 2/11 = 7/22', async function () {
@@ -546,8 +546,8 @@ describe('Fraction API', function () {
         }
         const sets = await makeSet([o])
         const rs: Rendered[] = sets[0].exercises[0].rendered
-        assert.equal(rs[0].rendered, '1  2 (1*11)-(2*2) 11-4  7')
-        assert.equal(rs[1].rendered, '----=------------=----=--')
-        assert.equal(rs[2].rendered, '2 11     2*11      22  22')
+        assert.equal(rs[0].rendered, '1  2 (1*11)-(?*?) 11-?  ?')
+        assert.equal(rs[1].rendered, '_-__=____________=____=__')
+        assert.equal(rs[2].rendered, '2 11     ?*11      ??  ??')
     });
 });
