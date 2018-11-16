@@ -460,10 +460,10 @@ function renderExtensionFraction(exercise:Exercise, sign: string) {
     // optional extension with shortening term
     const t4: FractionToken = _exts[5] ? { n: _exts[5][0].toString(), d: _exts[5][1].toString() } : undefined
     if (t4) {
-        let sn4 = t4.n.length === t4.d.length ? 0 : 1
+        let sn4 = calculate_additional_space(t4.n.length, t4.d.length)
         let lt4 = t4.n.length > t4.d.length ? t4.n.length : t4.d.length
         let sd4 = calculate_additional_space(t4.d.length, t4.n.length)
-        first = first + ' ' + t4.n
+        first = first + ' ' + _fillSpace(sn4) + t4.n
         secon = secon + '=' + _fillLine(lt4)
         third = third + ' ' + _fillSpace(sd4) + t4.d
         if(third.length < first.length) {

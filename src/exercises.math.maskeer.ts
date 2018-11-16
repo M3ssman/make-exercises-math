@@ -74,11 +74,23 @@ export function mask(exercise: Exercise, replacer: MaskType): Exercise {
     return exercise;
 }
 
-const maskNonOneWithDefaultMark: (String) => string = _maskWith.bind(null, /[02-9]/g, DEFAULT_MASK)
+/**
+ * 
+ * regular replacement funcion using standard JavaScript Regex
+ * 
+ * @param regex 
+ * @param mask 
+ * @param ren 
+ */
+function _maskWith(regex: RegExp, mask: string, ren: string): string {
+    return ren.replace(regex, mask)
+}
+
+/**
+ * partially applied functions
+ */
+const maskNonOneWithDefaultMark: (String) => string = _maskWith.bind(null, /[2-9]/g, DEFAULT_MASK)
 const maskNonNullWithDefaultMark: (string) => string = _maskWith.bind(null, /[1-9]/g, DEFAULT_MASK)
 const maskAllWithDefaultMark: (string) => string = _maskWith.bind(null, /[0-9]/g, DEFAULT_MASK)
 const _whitespaceZero: (string) => string = _maskWith.bind(null, /0/g, ' ')
 
-function _maskWith(regex: RegExp, mask: string, ren: string): string {
-    return ren.replace(regex, mask)
-}

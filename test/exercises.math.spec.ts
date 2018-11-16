@@ -506,7 +506,7 @@ describe('Division without rest API', function () {
 describe('Fraction API', function () {
     it('should generate add fractions in q_1 {1/8 .. 16/8} and q_2 {1/12 .. 24/12}', async function () {
         const sets = await makeSet([add_fraction])
-        assert.isTrue(sets[0].exercises.length === 8)
+        assert.isTrue(sets[0].exercises.length > 1)
         for (let f = 0; f < sets[0].exercises.length; f++) {
             const exercise = sets[0].exercises[f];
             assert.isNotNull(exercise.expression.value);
@@ -515,7 +515,25 @@ describe('Fraction API', function () {
         }
     });
 
-    it('should generate an add fractions 13/8 + 7/4 = 27/8', async function () {
+    it('should generate add fractions 13/8 + 7/4 = 27/8', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'ADD_FRACTION',
+            operations: ['addQ'],
+            operands: [
+                { exactMatchOf: [1,4] },
+                { exactMatchOf: [1,4] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '1 1 (1*?)+(?*1) ?+?  ? 1')
+        assert.equal(rs[1].rendered, '_+_=___________=___=__=_')
+        assert.equal(rs[2].rendered, '4 4     ?*?     1?  1? ?')
+    });
+
+    it('should generate add fractions 13/8 + 7/4 = 27/8', async function () {
         const o: Options = {
             quantity: 1,
             set: 'Q',
@@ -528,7 +546,7 @@ describe('Fraction API', function () {
         }
         const sets = await makeSet([o])
         const rs: Rendered[] = sets[0].exercises[0].rendered
-        assert.equal(rs[0].rendered, '13 7 (1?*?)+(?*?) ??+?? 1?? ??')
+        assert.equal(rs[0].rendered, '13 7 (1?*?)+(?*?) ??+?? 10? ??')
         assert.equal(rs[1].rendered, '__+_=____________=_____=___=__')
         assert.equal(rs[2].rendered, ' 8 4     ?*?       ??    ??  ?')
     });
