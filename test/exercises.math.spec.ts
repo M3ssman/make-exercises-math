@@ -2,6 +2,8 @@ import { assert } from 'chai';
 import {
     addFraction,
     subFraction,
+    multFraction,
+    divFraction,
     Fraction,
     Exercise,
     ExerciseSet,
@@ -27,6 +29,16 @@ import {
  * Test Exercise Functions
  */
 describe('Rational Functions', () => {
+    it('div rationales: 5/12 : 5/8 => 2/3', () => {
+        const actual1: Fraction = divFraction([5, 12], [5, 8])
+        const expected1: Fraction = [2, 3]
+        assert.deepEqual(actual1, expected1)
+    });
+    it('mult rationales: 2/3 * 5/8 => 5/12', () => {
+        const actual1: Fraction = multFraction([2, 3], [5, 8])
+        const expected1: Fraction = [5, 12]
+        assert.deepEqual(actual1, expected1)
+    });
     it('sub rationales: 1/2 - 2/11 => 7/22', () => {
         const actual1: Fraction = subFraction([1, 2], [2, 11])
         const expected1: Fraction = [7, 22]

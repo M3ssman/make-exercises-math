@@ -3,7 +3,7 @@ import {
     Exercise,
     Extension,
     ExtensionExpression,
-    Fraction
+    Fraction,
 } from './exercises.math';
 
 /** 
@@ -75,25 +75,25 @@ function _subCarryFunc(row: number[], value: number): number {
  * 
  * Calculate Carry Array from provided Digit-Matrix with given Value and Carry Functions
  * 
- * @param m 
+ * @param o2 
  * @param valueFunc 
  * @param carryFunc
  */
-function calculateCarry(m: number[][],
+function calculateCarry(o2: number[][],
     valueFunc: (row: number[], value: number) => number,
     carryFunc: (row: number[], value: number) => number): number[] {
     let smallestFit = [];
     let currentCarry = 0;
 
-    for (let i = 0; i < m.length; i++) {
+    for (let i = 0; i < o2.length; i++) {
         smallestFit.unshift(currentCarry);
 
-        let value = valueFunc(m[i], currentCarry);
+        let value = valueFunc(o2[i], currentCarry);
         if (currentCarry > 0) {
             currentCarry = 0;
         }
 
-        currentCarry = carryFunc(m[i], value);
+        currentCarry = carryFunc(o2[i], value);
     }
     return smallestFit;
 }
@@ -130,24 +130,24 @@ function _normalize_digit_tab(dt: number[][]): number[][] {
     // sort by number with max figures
     const o = dt.sort((a: number[], divisor: number[]) => divisor.length - a.length);
     // get max
-    const m = o[0].length;
+    const o2 = o[0].length;
     // normalize
-    const n: number[][] = o.map(value => _normalize(value, m, true));
+    const n: number[][] = o.map(value => _normalize(value, o2, true));
     return n;
 }
 
 /**
- * @param m 
+ * @param o2 
  */
-function _normalize(vals: number[], m: number, left: boolean): number[] {
-    const d = m - vals.length;
+function _normalize(vals: number[], o2: number, left: boolean): number[] {
+    const d = o2 - vals.length;
     if (d > 0) {
         if (left) {
             const n = vals.concat(new Array(d));
             return n.fill(0, vals.length);
         } else {
-            const m = new Array(d).fill(0);
-            return m.concat(vals);
+            const o2 = new Array(d).fill(0);
+            return o2.concat(vals);
         }
     } else {
         return vals;
@@ -239,9 +239,9 @@ function _getLastDigit(row: number[]): number {
 
 function calculateMultOperandsMatrix(a: number, divisor: number): number[][] {
     const dividend_in: number[] = _decompose_digit(a).reverse();
-    const m = dividend_in.map((v, i) => divisor * v * Math.pow(10, i)).map(x => _decompose_digit(x));
-    const max: number = m.map(os => os.length).reduce((p, c) => p < c ? c : p);
-    const normM = m.map(_os => _normalize(_os, max, false));
+    const o2 = dividend_in.map((v, i) => divisor * v * Math.pow(10, i)).map(x => _decompose_digit(x));
+    const max: number = o2.map(os => os.length).reduce((p, c) => p < c ? c : p);
+    const normM = o2.map(_os => _normalize(_os, max, false));
     return normM;
 }
 
@@ -276,7 +276,7 @@ export function extendDivEven(exercise: Exercise): Exercise {
         if (firstRun) {
             // consume dividend_in while current part is < divisor
             // additional check if something left for next round second to last
-            // otherwise running into lots of 'undefineds' with trailing "0"s 
+            // otherwise running into lots of 'undefineds' with trailing "0"o1 
             while (_greater(divisor_in, _parts) && i < dividend_in.length) {
                 _parts.push(dividend_in[i]);
                 i++;
@@ -336,13 +336,13 @@ function createExtensionDivision(d: number, smallestFit: number, v: number) {
 
 /**
  * 
- * Compose Number up to the m-th index from ns dividend_in sum from 0 to m using ns.c * 10^(m-ns.i)
+ * Compose Number up to the o2-th index from ns dividend_in sum from 0 to o2 using ns.c * 10^(o2-ns.i)
  * 
  * @param ns 
- * @param m 
+ * @param o2 
  */
-export function _compose_digit(ns: number[], m: number): number {
-    return ns.reduce((p, c, i) => (i <= m) ? p + c * Math.pow(10, m - i) : p, 0);
+export function _compose_digit(ns: number[], o2: number): number {
+    return ns.reduce((p, c, i) => (i <= o2) ? p + c * Math.pow(10, o2 - i) : p, 0);
 }
 
 export function _how_often(a: number, b: number): number {
@@ -360,30 +360,69 @@ export function _how_often(a: number, b: number): number {
  */
 export function extendAddFraction(exercise: Exercise): Exercise {
     const _e: Expression = exercise.expression
-    exercise.extension = createExtensionAddFraction(_e)
-    return exercise
-}
-function createExtensionAddFraction(expression: Expression): ExtensionExpression {
-    let ops = []
-    const s: Fraction = <Fraction>expression.operands[0]
-    const m: Fraction = <Fraction>expression.operands[1]
-    ops.push([s[0], m[1]], [s[1], m[0]], [s[1], m[1]])
-    const _d = s[1] * m[1]
-    ops.push([s[0] * m[1], m[0] * s[1]], _d)
-    // handle possible kuerzen
-    const _r: Fraction = [s[0] * m[1] + m[0] * s[1], _d]
-    if (gcd(_r[0], _r[1]) > 1) {
-        ops.push(_r)
-    }
-
+    const ops = createExtensionAddFractionOperands(_e)
     const e: ExtensionExpression = {
         type: 'ADD_FRACTION',
         extensions: [{
             operands: ops,
-            value: <[number, number]>expression.value
+            value: <[number, number]>_e.value
         }]
     }
-    return e
+    exercise.extension = e
+    return exercise
+}
+
+/**
+ * 
+ * Create Extensions for add and sub which 
+ * 
+ * @param f function
+ * @param expression 
+ */
+function _createExtensionOperands01(f: (a: number, b: number) => number, expression: Expression): any[] {
+    let ops = []
+    const o1: Fraction = <Fraction>expression.operands[0]
+    const o2: Fraction = <Fraction>expression.operands[1]
+
+    // 1st term
+    _enrich1stTermExtensions(ops, o1, o2);
+
+    // 2nd term
+    // extension 4 = o1[0] * o2[1], o2[0] * o1[1]
+    // extension 5 = denominator
+    const _d = o1[1] * o2[1]
+    ops.push([o1[0] * o2[1], o2[0] * o1[1]], _d)
+
+    // handle possible kuerzen
+    // const _r: Fraction = [f(o1[0] * o2[1] + o2[0] * o1[1], _d]
+    const _r: Fraction = [f(o1[0] * o2[1], o2[0] * o1[1]), _d]
+    if (gcd(_r[0], _r[1]) > 1) {
+        // extension 6 = rationalize (_r)
+        ops.push(_r)
+    }
+    return ops
+}
+
+const _add = (a: number, b: number) => { return a + b }
+const _sub = (a: number, b: number) => { return a - b }
+const createExtensionAddFractionOperands: (Expression) => any[] = _createExtensionOperands01.bind(null, _add);
+const createExtensionSubFractionOperands: (Expression) => any[] = _createExtensionOperands01.bind(null, _sub);
+
+/**
+ * 
+ * Enrich 1st term (o1_0 * o2_1) f (o1_1 * o2_0) / (o1_1 * o2_1) as Extensions
+ * for Terms which must be 'normalized'
+ * 
+ * extension 0 = o1_0 ,  o2_1
+ * extension 1 = o1_1 ,  o2_0
+ * extension 2 = o1_1 ,  o2_1
+ * 
+ * @param ops 
+ * @param o1 
+ * @param o2 
+ */
+function _enrich1stTermExtensions(ops: any[], o1: [number, number], o2: [number, number]) {
+    ops.push([o1[0], o2[1]], [o1[1], o2[0]], [o1[1], o2[1]]);
 }
 
 /**
@@ -410,27 +449,100 @@ export function gcd(a: number, b: number): number {
 
 export function extendSubFraction(exercise: Exercise): Exercise {
     const _e: Expression = exercise.expression
-    exercise.extension = createExtensionSubFraction(_e)
-    return exercise
-}
-function createExtensionSubFraction(expression: Expression): ExtensionExpression {
-    let ops = []
-    const s: Fraction = <Fraction>expression.operands[0]
-    const m: Fraction = <Fraction>expression.operands[1]
-    ops.push([s[0], m[1]], [s[1], m[0]], [s[1], m[1]])
-    const _d = s[1] * m[1]
-    ops.push([s[0] * m[1], m[0] * s[1]], _d)
-    // handle possible kuerzen
-    const _r: Fraction = [s[0] * m[1] - m[0] * s[1], _d]
-    if (gcd(_r[0], _r[1]) > 1) {
-        ops.push(_r)
-    }
+    const ops = createExtensionSubFractionOperands(_e)
     const e: ExtensionExpression = {
         type: 'SUB_FRACTION',
         extensions: [{
             operands: ops,
-            value: <[number, number]>expression.value
+            value: <[number, number]>_e.value
         }]
     }
-    return e
+
+    exercise.extension = e
+    return exercise
+}
+
+export function extendMultFraction(exercise: Exercise): Exercise {
+    const _e: Expression = exercise.expression
+    const ops = createExtensionMultFractionOperands(_e)
+    const e: ExtensionExpression = {
+        type: 'MULT_FRACTION',
+        extensions: [{
+            operands: ops,
+            value: <[number, number]>_e.value
+        }]
+    }
+
+    exercise.extension = e
+    return exercise
+}
+
+function createExtensionMultFractionOperands(expression: Expression): any[] {
+    let ops = []
+    const o1: Fraction = <Fraction>expression.operands[0]
+    const o2: Fraction = <Fraction>expression.operands[1]
+    // 1st term
+    _enrich1stTermExtensionsMult(ops, o1, o2)
+
+    // 2nd term
+    const _2nd: [number, number] = [o1[0] * o2[0], o1[1] * o2[1]]
+    ops.push(_2nd)
+
+    // required kueren?
+    _handlePossibleKuerzen(_2nd, expression, ops)
+    return ops
+}
+
+function _handlePossibleKuerzen(_2nd: [number, number], expression: Expression, ops: any[]) {
+    const _gcd = gcd(_2nd[0], _2nd[1]);
+    if (_gcd > 1) {
+        const _r: [number, number] = [_2nd[0] / _gcd, _2nd[1] / _gcd];
+        if (_differ(_r, <[number, number]>expression.value)) {
+            ops.push(_r);
+        }
+    }
+}
+
+function _differ(f1: Fraction, f2: Fraction): boolean {
+    return f1[0] !== f2[0] && f1[1] !== f2[1]
+}
+
+export function extendDivFraction(exercise: Exercise): Exercise {
+    const _e: Expression = exercise.expression
+    const ops = createExtensionDivFractionOperands(_e)
+    const e: ExtensionExpression = {
+        type: 'DIV_FRACTION',
+        extensions: [{
+            operands: ops,
+            value: <[number, number]>_e.value
+        }]
+    }
+    exercise.extension = e
+    return exercise
+}
+
+function createExtensionDivFractionOperands(expression: Expression): any[] {
+    let ops = []
+    const o1: Fraction = <Fraction>expression.operands[0]
+    const o2: Fraction = <Fraction>expression.operands[1]
+    // 1st term a - invert ops
+    const _o1 = o1
+    const _o2: [number, number] = [o2[1], o2[0]]
+    ops.push(_o1, _o2)
+
+    // 1st term b - move on with multFraction 1st step
+    _enrich1stTermExtensionsMult(ops, _o1, _o2)
+
+    // 2nd term
+    const _2nd: [number, number] = [_o1[0] * _o2[0], _o1[1] * _o2[1]]
+    ops.push(_2nd)
+
+    // maybe kuerzen?
+    _handlePossibleKuerzen(_2nd, expression, ops)
+
+    return ops
+}
+
+function _enrich1stTermExtensionsMult(ops: any[], o1: [number, number], o2: [number, number]) {
+    ops.push([o1[0], o2[0]], [o1[1], o2[1]])
 }

@@ -7,6 +7,8 @@ import {
     extendMultCarry,
     extendDivEven,
     extendAddFraction,
+    extendMultFraction,
+    extendDivFraction,
     _compose_digit,
     _how_often,
     _greater,
@@ -41,10 +43,41 @@ describe('Extension Functions', () => {
 
 
 describe('Extension API', function () {
+    it('5/12 : 5/8 = 5/12 * 8/5 = (5*8)/(12*5) = 40/60 = 2/3', () => {
+        const expr: Expression = {
+            operations: ['div'],
+            operands: [[5, 12], [5, 8]],
+            value: [2, 3]
+        };
+        const ee: ExtensionExpression = extendDivFraction({ expression: expr }).extension;
+        assert.exists(ee)
+        console.error('### HAVING ' + JSON.stringify(ee))
+        assert.equal(ee.extensions[0].operands[0].toString(), '5,12');
+        assert.equal(ee.extensions[0].operands[1].toString(), '8,5');
+        assert.equal(ee.extensions[0].operands[2].toString(), '5,8');
+        assert.equal(ee.extensions[0].operands[3].toString(), '12,5');
+        assert.equal(ee.extensions[0].operands[4].toString(), '40,60');
+        assert.equal(ee.extensions[0].operands.length, 5)
+        assert.equal(ee.extensions[0].value.toString(), '2,3');
+    });
+    it('2/3 * 5/8 = (2*5)/(3*8) = 10/24 = 5/12', () => {
+        const expr: Expression = {
+            operations: ['mult'],
+            operands: [[2, 3], [5, 8]],
+            value: [5, 12]
+        };
+        const ee: ExtensionExpression = extendMultFraction({ expression: expr }).extension;
+        assert.exists(ee)
+        assert.equal(ee.extensions[0].operands[0].toString(), '2,5');
+        assert.equal(ee.extensions[0].operands[1].toString(), '3,8');
+        assert.equal(ee.extensions[0].operands[2].toString(), '10,24');
+        assert.equal(ee.extensions[0].value.toString(), '5,12');
+    });
+
     it('9/8 + 5/12 = (9*12 + 8*5)/(8*12) = 37/24', () => {
         const expr: Expression = {
             operations: ['add'],
-            operands:[[9,8], [5,12]],
+            operands: [[9, 8], [5, 12]],
             value: [37, 24]
         };
         const ee: ExtensionExpression = extendAddFraction({ expression: expr }).extension;

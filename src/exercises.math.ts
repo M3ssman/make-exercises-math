@@ -23,6 +23,7 @@ import {
     extendDivEven,
     extendAddFraction,
     extendSubFraction,
+    extendMultFraction,
     gcd
 } from './exercises.math.extensions';
 import {
@@ -52,6 +53,8 @@ export type ExtensionType =
     | 'DIV_EVEN'
     | 'ADD_FRACTION'
     | 'SUB_FRACTION'
+    | 'MULT_FRACTION'
+    | 'DIV_FRACTION'
 
 export type MaskType =
     ''
@@ -133,7 +136,8 @@ const extensioneerMap: { [key: string]: Extensioneer } = {
     'SUB_CARRY': extendSubCarry,
     'MULT_MULT': extendMultCarry,
     'ADD_FRACTION': extendAddFraction,
-    'SUB_FRACTION': extendSubFraction
+    'SUB_FRACTION': extendSubFraction,
+    'MULT_FRACTION': extendMultFraction
 }
 
 const rendererMap: { [key: string]: Renderer } = {
@@ -258,7 +262,7 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
 
 
 /**
- * Basic Binary Functions
+ * Basic Binary Operations
  */
 export function add(a: number, b: number): number { return a + b }
 export function sub(a: number, b: number): number { return a - b }
@@ -281,19 +285,53 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult },
 };
 
+
+/**
+ * 
+ * Rational / Fraction Binary Operations
+ * 
+ */
+export const addFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '+')
+
+export const subFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '-')
+
+export const multFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '*')
+
+export const divFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, ':')
+
 export const funcMapQ: { [key: string]: OpEntryQ } = {
     'addQ': { label: '+', func: addFraction },
-    'subQ': { label: '-', func: subFraction }
+    'subQ': { label: '-', func: subFraction },
+    'multQ': { label: '*', func: multFraction },
+    'divQ': { label: ':', func: divFraction }
 }
 
-export function addFraction(a: Fraction, b: Fraction): Fraction {
-    const _sum: [number, number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]
-    return rationalize(_sum)
+function _opFraction(sign: string, a: Fraction, b: Fraction): Fraction {
+    if (sign === '*') {
+        const r: [number, number] = [a[0] * b[0], a[1] * b[1]]
+        return rationalize(r)
+    } else if (sign === ':'){
+        const r: [number, number] = [a[0] * b[1], a[1] * b[0]]
+        return rationalize(r)
+    } else {
+        const _d1: number = a[0] * b[1]
+        const _d2: number = b[0] * a[1]
+        const _d: number = _op(_d1, _d2, sign)
+        const _n = a[1] * b[1]
+        const _r: [number, number] = [_d, _n]
+        return rationalize(_r)
+    }
 }
 
-export function subFraction(a: Fraction, b: Fraction): Fraction {
-    const _diff: [number, number] = [a[0] * b[1] - b[0] * a[1], a[1] * b[1]]
-    return rationalize(_diff)
+function _op(d1: number, d2: number, s: string): number {
+    if (s === '+') {
+        return d1 + d2
+    } else if (s === '-') {
+        return d1 - d2
+    } else {
+        console.error('[ERROR] unknown operation sign "' + s + '" encountered, return "0"!')
+        return 0
+    }
 }
 
 export function rationalize(f: Fraction): Fraction {
