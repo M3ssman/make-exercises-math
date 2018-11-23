@@ -394,11 +394,17 @@ function _createExtensionOperands01(f: (a: number, b: number) => number, express
     ops.push([o1[0] * o2[1], o2[0] * o1[1]], _d)
 
     // handle possible kuerzen
-    // const _r: Fraction = [f(o1[0] * o2[1] + o2[0] * o1[1], _d]
     const _r: Fraction = [f(o1[0] * o2[1], o2[0] * o1[1]), _d]
-    if (gcd(_r[0], _r[1]) > 1) {
-        // extension 6 = rationalize (_r)
-        ops.push(_r)
+    // be aware of zeros in between
+    if (_r[0] === 0 || _r[1] === 0) {
+        console.error('[WARN] [exercises.math.extensions:400] detected ZERO in Fraction ' + _r + ' return [0,0]')
+        ops.push([0, 0])
+    } else {
+        // buisiness als usual
+        if (gcd(_r[0], _r[1]) > 1) {
+            // extension 6 = rationalize (_r)
+            ops.push(_r)
+        }
     }
     return ops
 }
@@ -431,6 +437,10 @@ function _enrich1stTermExtensions(ops: any[], o1: [number, number], o2: [number,
  * @param b denominNator
  */
 export function gcd(a: number, b: number): number {
+    if (a === 0 || b === 0) {
+        console.warn('[WARN] search gcd for ' + a + ' and ' + b + ' => return "0"')
+        return 0
+    }
     if (a < b) {
         let smallestFit = a;
         a = b;

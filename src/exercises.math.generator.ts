@@ -97,7 +97,8 @@ export function generateExpression(
 export function generateRationalExpression(
     operations: ((x: Fraction, y: Fraction) => Fraction)[],
     operandsConstraints: Constraint[],
-    resultConstraints: Constraint): Expression {
+    resultConstraints: Constraint,
+    origOps?): Expression {
 
     let x: Fraction;
     let y: Fraction;
@@ -133,14 +134,15 @@ export function generateRationalExpression(
         }
 
         // ensure for subraction that subtrahend is not smaller than minuend
-        if(operations[0].name === 'subQ' && isGreater(y, x)) {
+        // origOps is necessary here because of function-binding give every function name like "Bind_op"
+        if (origOps && origOps[0] === 'subQ' && isGreater(y, x)) {
             const _t = x
             x = y
-            y= _t
+            y = _t
         }
 
         nr_ok = __holdXYoperandsConstraints(x, y, xConstr, yConstr);
-        r = rationalize((operations[0])(x, y));
+        r = (operations[0])(x, y);
 
         // build expression
         (<Fraction[]>expression.operands).push(x, y);
@@ -160,7 +162,7 @@ export function generateRationalExpression(
                 (<Fraction[]>expression.operands).push(y);
 
                 nr_ok = __holdXYoperandsConstraints(r, y, xConstr, yConstr);
-                r = (operations[o])(r, y);
+                r = ((operations[o])(x, y))
                 expression.operations.push(operations[o].name);
             }
         }
@@ -186,6 +188,7 @@ export function generateRationalExpression(
             console.error('[ERROR] no valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
             throw new Error('No valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
         }
+        // console.log('### RUNNING ... ')
     } while (loop_again);
     if (expression.operands) {
         const _tmp: [number, number][] = <[number, number][]>expression.operands
@@ -276,7 +279,7 @@ function _getNumber(constraint?: Constraint): number | Fraction {
                 throw new Error('Unable to generate Fraction within ' + _n + ' tries that fits ' + JSON.stringify(constraint))
             }
         } while (!__checkSingleConstraint(result, constraint))
-    }  
+    }
     return result;
 }
 

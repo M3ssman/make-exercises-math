@@ -1,27 +1,25 @@
 # Make Exercises Math
 ## Description
-NPM Library that makes Fundamental mathematical Exercises.
+NPM Library that makes Fundamental mathematical Exercises from Addition of small Number up to the Subtraction of Fraction Numbers.
 
-Supports simple Addition, Subtraction and Multiplication Exercises with two Operands and their Result using Value Contraints. 
-For each exercise, you declare lower and upper Bounds of Operands both, and the Result, accordingly. 
-The Lib provides a pre-defined Set of basic numerical Ranges. Each concrete ExerciseType is labelled with a prefix that determines it's Operation, it's Constraint on the Operands and some optional Constraints for the Result
+Each ExerciseType is labelled with a prefix that determines it's Operation ("add", "sub", and so on), as well as it'n Numerical Range and Constraints for the Operands and/or the Result.
 
 ## Exercise Types
 
-The central API is a method called "makeSet" from the Library. It expecteds an Array of Exercise Types as Input and returns a Promise Set of Exercise Expressions with default rendering Options that mark each digit of the Result.
+The central API is called "makeSet". It expecteds an Set of Exercise Types as Input and returns a Promise Set of Exercise with Expressions and Rendered Output were some Parts of the Exercises and the Result, too, are masked and therefore must be filled in.
 
 ### Definition of Exercise Types
 
 The Exercise Options can be though of regular JSON with the following mandatory Properties:
-* ```level```: number  
-  Rendering Level. Default "1", which means that a single Line will be output where the result is masked with an underscore.  
-  Rendering Addition with Carry requires Level "2" because of additional logic to calculate the carry and pre-fill each rendered Line.
-* ```quantity```: number  
-  Amount of Exercises, defaults to 12.
+* ```set```: string  
+  Numerical Range of Exercises, one of ```N|Q``` for Integers and Rational Numbers, both positive.
 * ```operations```: string[]  
-  String Representation of a basic Exercise , exact one of ```sum|sub|mult|div```.
-* ```operands```: NumericalConstraint[]  
-  Array of Numerical Constraints for Operands.
+  String Representation of a basic Exercise, exact one of ```sum|sub|mult|div|addQ|subQ```.
+* ```extension```:  
+  Type of Extension to generate. Determines additional, intermediate calculation Steps. Depend strongly on actual ExerciseType.
+* ```quantity```: number  
+  Amount of Exercises, defaults depend on the ExerciseType in Range between 4 (div_even) and 12 (simple add).
+* ```operands```: NumericalConstraint[]    List of Numerical Constraints that must hold for Operands.
 * ```result```: NumericalConstraint  
   Numerical Constraints that must hold for the Result. 
 
@@ -90,8 +88,10 @@ Currently, it supports the following ExerciseTypes:
 * mult_N999_N99
 * mult_N999_N999
 * div_even
+* addFraction
+* subFraction
 
-The Naming Convention reflect what each Definition intends. Therefore, the "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
+The Naming Convention reflects each Definition intends. Therefore, "addN50N10" means: "give me Exercises of Addition, where the first Summand is between 0-50 and the second between 0-19".
 
 The "subN99N19Nof10" means: "give me Exercises of Subtraction, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". Under the hood, each simple Subtraction Exercise assures a positive Difference, since the Minuend is garanteed to be larger than what gets subtracted. Per default, it creates a Set of 12 Exercises for each requested ExerciseType.
 
@@ -111,6 +111,8 @@ For the first flavour there's a default rendering included, which renders each d
 
 With "div_even" you get a implementation of divison Exercises, where the Dividend is in range 500 .. 9999 and the Divisor is between 2 .. 99.
 
+The Fraction Exercises operate per default with Rational Numbers in a rather small Range [1/12 ... 3].
+
 ## Example Usage
 
 Please go to [http://github.com/M3ssman/make-exercises-math-app](http://github.com/M3ssman/make-exercises-math-app) for further Explanations. 
@@ -121,15 +123,9 @@ After forking or cloning the Repository, switch to your local Repository root-Fo
 npm i make-exercise-math --save
 ```
 
-## Tests and Coverage (via nyc)
+## Tests 
 ```
 npm test
 ```
 
-```
-npm run coverage
-```
-Generated Reports will be located inside "coverage" Folder.
-
-
-
+Test run creates a Coverage, located in ./coverage. 

@@ -192,9 +192,11 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
                         _generatorFunc = generateRationalExpression
                     }
                     const functs = option.operations.map(operation => _funcMap[operation].func);
-                    if (functs.length > 0) {
-                        let exp: Expression = _generatorFunc(functs, option.operands, option.result);
+                    if (functs.length > 0 && functs[0] !== undefined) {
+                        let exp: Expression = _generatorFunc(functs, option.operands, option.result, option.operations);
                         _exercises.push({ expression: exp, rendered: [] });
+                    } else {
+                        reject('[ERROR] no function mapped for ' + JSON.stringify(option.operations))
                     }
                 }
                 return { exercises: _exercises, properties: _props };
@@ -316,7 +318,7 @@ function _opFraction(sign: string, a: Fraction, b: Fraction): Fraction {
     if (sign === '*') {
         const r: [number, number] = [a[0] * b[0], a[1] * b[1]]
         return rationalize(r)
-    } else if (sign === ':'){
+    } else if (sign === ':') {
         const r: [number, number] = [a[0] * b[1], a[1] * b[0]]
         return rationalize(r)
     } else {
@@ -333,7 +335,11 @@ function _op(d1: number, d2: number, s: string): number {
     if (s === '+') {
         return d1 + d2
     } else if (s === '-') {
-        return d1 - d2
+        if (d1 < d2) {
+            throw new Error('[FATAL] encoutered ' + d1 + ' < ' + d2 + ' for op: "' + s + '" at subQ')
+        } else {
+            return d1 - d2
+        }
     } else {
         console.error('[ERROR] unknown operation sign "' + s + '" encountered, return "0"!')
         return 0
@@ -342,6 +348,13 @@ function _op(d1: number, d2: number, s: string): number {
 
 export function rationalize(f: Fraction): Fraction {
     const [a, b] = f;
+    if (b === 0) {
+        throw new Error('[FATAL] Divide "' + a + '" by "0" encountered')
+    }
+    if (a === 0) {
+        console.error('[WARN][exercise.math:355] "' + a + '"/"' + b + '" return [0,0]')
+        return [0, 0]
+    }
     const _gcd = gcd(a, b);
     if (_gcd > 1) {
         return [a / _gcd, b / _gcd];
