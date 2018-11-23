@@ -12,7 +12,9 @@ import {
     renderExtensionsMultiplication,
     renderExtensionsDivEven,
     renderExtensionFractionAdd,
-    renderExtensionFractionSub
+    renderExtensionFractionSub,
+    renderExtensionFractionMult,
+    renderExtensionFractionDiv
 } from './exercises.math.renderer';
 import {
     Extensioneer,
@@ -24,6 +26,7 @@ import {
     extendAddFraction,
     extendSubFraction,
     extendMultFraction,
+    extendDivFraction,
     gcd
 } from './exercises.math.extensions';
 import {
@@ -39,7 +42,7 @@ export type N = number[];
 export type Q = [N, N];
 export type Fraction = [number, number];
 export type Set = 'Q' | 'N';
-export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ' | 'subQ';
+export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ' | 'subQ' | 'multQ' | 'ratio';
 
 /**
  * What kind of Extension to generate
@@ -137,7 +140,8 @@ const extensioneerMap: { [key: string]: Extensioneer } = {
     'MULT_MULT': extendMultCarry,
     'ADD_FRACTION': extendAddFraction,
     'SUB_FRACTION': extendSubFraction,
-    'MULT_FRACTION': extendMultFraction
+    'MULT_FRACTION': extendMultFraction,
+    'DIV_FRACTION': extendDivFraction
 }
 
 const rendererMap: { [key: string]: Renderer } = {
@@ -147,6 +151,8 @@ const rendererMap: { [key: string]: Renderer } = {
     'MULT_MULT': renderExtensionsMultiplication,
     'ADD_FRACTION': renderExtensionFractionAdd,
     'SUB_FRACTION': renderExtensionFractionSub,
+    'MULT_FRACTION': renderExtensionFractionMult,
+    'DIV_FRACTION': renderExtensionFractionDiv,
     'SINGLE_LINE': renderDefault
 }
 
@@ -303,7 +309,7 @@ export const funcMapQ: { [key: string]: OpEntryQ } = {
     'addQ': { label: '+', func: addFraction },
     'subQ': { label: '-', func: subFraction },
     'multQ': { label: '*', func: multFraction },
-    'divQ': { label: ':', func: divFraction }
+    'ratio': { label: ':', func: divFraction }
 }
 
 function _opFraction(sign: string, a: Fraction, b: Fraction): Fraction {

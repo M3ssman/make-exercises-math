@@ -51,11 +51,10 @@ describe('Extension API', function () {
         };
         const ee: ExtensionExpression = extendDivFraction({ expression: expr }).extension;
         assert.exists(ee)
-        console.error('### HAVING ' + JSON.stringify(ee))
         assert.equal(ee.extensions[0].operands[0].toString(), '5,12');
         assert.equal(ee.extensions[0].operands[1].toString(), '8,5');
-        assert.equal(ee.extensions[0].operands[2].toString(), '5,8');
-        assert.equal(ee.extensions[0].operands[3].toString(), '12,5');
+        assert.equal(ee.extensions[0].operands[2].toString(), '5,12');
+        assert.equal(ee.extensions[0].operands[3].toString(), '8,5');
         assert.equal(ee.extensions[0].operands[4].toString(), '40,60');
         assert.equal(ee.extensions[0].operands.length, 5)
         assert.equal(ee.extensions[0].value.toString(), '2,3');
@@ -149,7 +148,6 @@ describe('Extension API', function () {
             value: 110
         };
         const ee: ExtensionExpression = extendDivEven({ expression: expr }).extension
-        //console.log('### EXT ' + JSON.stringify(ee))
         assert.equal(3, ee.extensions.length);
         assert.equal(ee.extensions[0].operands[0].toString(), '1,1');
         assert.equal(ee.extensions[0].operands[1].toString(), '1,0');

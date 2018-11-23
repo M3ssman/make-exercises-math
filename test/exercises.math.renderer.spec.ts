@@ -9,7 +9,8 @@ import {
     renderExtensionsDivEven,
     renderExtensionFractionAdd,
     Rendered,
-    _calculateGap
+    _calculateGap,
+    _renderFractionToken
 } from '../src/exercises.math.renderer'
 
 /**
@@ -36,8 +37,16 @@ describe('Renderer Functions', function () {
         const actual = _exchangeTrailingZeros([0, 6], true);
         assert.equal(actual, '06');
     });
-});
 
+    it('_createFractionRenderToken ({"13","8"})', () => {
+        const input = { n: '13', d: '8' }
+        const actual = _renderFractionToken(input)
+        assert.isDefined(actual)
+        assert.equal(actual["nom"], "13")
+        assert.equal(actual["str"], "__")
+        assert.equal(actual["den"], " 8")
+    })
+})
 
 /**
  * Fraction Addition Render API
@@ -78,7 +87,7 @@ describe('Render Addition of Fractions', () => {
         assert.isArray(actuals)
         assert.equal(actuals[0].rendered, '2  4 (2*11)+(3*4) 22+12 34')
         assert.equal(actuals[1].rendered, '_+__=____________=_____=__')
-        assert.equal(actuals[2].rendered, '3 11     3*11      33   33')
+        assert.equal(actuals[2].rendered, '3 11     3*11       33  33')
     })
 })
 

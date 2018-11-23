@@ -482,7 +482,7 @@ function createExtensionMultFractionOperands(expression: Expression): any[] {
     const o1: Fraction = <Fraction>expression.operands[0]
     const o2: Fraction = <Fraction>expression.operands[1]
     // 1st term
-    _enrich1stTermExtensionsMult(ops, o1, o2)
+    ops.push([o1[0], o2[0]], [o1[1], o2[1]])
 
     // 2nd term
     const _2nd: [number, number] = [o1[0] * o2[0], o1[1] * o2[1]]
@@ -493,10 +493,10 @@ function createExtensionMultFractionOperands(expression: Expression): any[] {
     return ops
 }
 
-function _handlePossibleKuerzen(_2nd: [number, number], expression: Expression, ops: any[]) {
-    const _gcd = gcd(_2nd[0], _2nd[1]);
+function _handlePossibleKuerzen(ns: [number, number], expression: Expression, ops: any[]) {
+    const _gcd = gcd(ns[0], ns[1]);
     if (_gcd > 1) {
-        const _r: [number, number] = [_2nd[0] / _gcd, _2nd[1] / _gcd];
+        const _r: [number, number] = [ns[0] / _gcd, ns[1] / _gcd];
         if (_differ(_r, <[number, number]>expression.value)) {
             ops.push(_r);
         }
@@ -530,8 +530,8 @@ function createExtensionDivFractionOperands(expression: Expression): any[] {
     const _o2: [number, number] = [o2[1], o2[0]]
     ops.push(_o1, _o2)
 
-    // 1st term b - move on with multFraction 1st step
-    _enrich1stTermExtensionsMult(ops, _o1, _o2)
+    // 1st term b - push again mult inverted
+    ops.push(_o1, _o2)
 
     // 2nd term
     const _2nd: [number, number] = [_o1[0] * _o2[0], _o1[1] * _o2[1]]
@@ -541,8 +541,4 @@ function createExtensionDivFractionOperands(expression: Expression): any[] {
     _handlePossibleKuerzen(_2nd, expression, ops)
 
     return ops
-}
-
-function _enrich1stTermExtensionsMult(ops: any[], o1: [number, number], o2: [number, number]) {
-    ops.push([o1[0], o2[0]], [o1[1], o2[1]])
 }

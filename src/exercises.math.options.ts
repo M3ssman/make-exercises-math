@@ -1,9 +1,7 @@
 import {
     Options,
-    Range,
-    ExtensionType
+    Range
 } from './exercises.math';
-
 
 /**
  * Define common Ranges
@@ -232,3 +230,25 @@ export const sub_fraction: Options = {
         { rangeQ: { min: [1,12], max: [18,12] } },
     ]
 };
+
+export const mult_fraction: Options = {
+    quantity: 8,
+    set: 'Q',
+    extension: 'MULT_FRACTION',
+    operations: ['multQ'],
+    operands: [
+        { rangeQ: { min: [1,12], max: [36,12] } },
+        { rangeQ: { min: [1,12], max: [24,12] } },
+    ]
+}
+
+export const div_fraction: Options = {
+    quantity: 8,
+    set: 'Q',
+    extension: 'DIV_FRACTION',
+    operations: ['ratio'],
+    operands: [
+        { rangeQ: { min: [1,12], max: [36,12] } },
+        { rangeQ: { min: [1,12], max: [24,12] } },
+    ]
+}
