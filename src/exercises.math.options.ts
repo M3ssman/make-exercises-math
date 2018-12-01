@@ -226,8 +226,8 @@ export const sub_fraction: Options = {
     extension: 'SUB_FRACTION',
     operations: ['subQ'],
     operands: [
-        { rangeQ: { min: [1,4], max: [12,4] } },
-        { rangeQ: { min: [1,12], max: [18,12] } },
+        { rangeQ: { min: [1, 8], max: [64, 8] } },
+        { rangeQ: { min: [1, 12], max: [24, 12] } },
     ]
 };
 

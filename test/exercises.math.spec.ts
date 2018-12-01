@@ -373,7 +373,7 @@ describe('Subtraction with Carry', function () {
         }
     });
 
-    it('bugfix test: 4252 - 929 should generate maskedCarryStr 0110', async () => {
+    it('[BUGFIX] test: 4252 - 929 should generate maskedCarryStr 0110', async () => {
         const opts: Options = {
             quantity: 1,
             set: "N",
@@ -415,9 +415,7 @@ describe('Multiplication with grid-like Extensions', function () {
         const _sets = await makeSet([opts])
         const exercise = _sets[0].exercises[0]
         assert.isNotNull(exercise.expression.value);
-        const actualExtensions = exercise.extension.extensions;
         const actRendStrs: Rendered[] = exercise.rendered
-        //console.log('### API ' + JSON.stringify(actRendStrs))
         assert.equal(actRendStrs[0].rendered, '755 * 6');
         assert.isDefined(actRendStrs[1])
         assert.equal(actRendStrs[1].rendered, '     ?0');
@@ -465,7 +463,7 @@ describe('Multiplication with grid-like Extensions', function () {
  */
 describe('Division without rest API', function () {
 
-    it('bugfix test 627 : 11 = 57', async () => {
+    it('[BUGFIX] test 627 : 11 = 57', async () => {
         const opts: Options = {
             quantity: 1,
             level: 5,
@@ -485,7 +483,7 @@ describe('Division without rest API', function () {
         assert.equal(5, exercise.rendered.length);
     });
 
-    it('bugfix test 1012 : 4 = 253', async () => {
+    it('[BUGFIX] test 1012 : 4 = 253', async () => {
         const opts: Options = {
             quantity: 1,
             level: 5,
@@ -537,7 +535,7 @@ describe('Division without rest API', function () {
 })
 
 describe('Fraction API', function () {
-    it('should generate add fractions in q_1 {1/8 .. 16/8} and q_2 {1/12 .. 24/12}', async function (){
+    it('should generate add fractions in q_1 {1/8 .. 16/8} and q_2 {1/12 .. 24/12}', async function () {
         const sets = await makeSet([add_fraction])
         assert.isTrue(sets[0].exercises.length > 1)
         for (let f = 0; f < sets[0].exercises.length; f++) {
@@ -602,22 +600,22 @@ describe('Fraction API', function () {
         assert.equal(rs[2].rendered, '2 11     ?*11      ??  ??')
     });
 
-    it('should generate sub fractions exercises from options', async function () {
+    it('should generate 1000 sub fractions exercises from options', async function () {
         const opts: Options = {
             quantity: 1000,
             set: 'Q',
             extension: 'SUB_FRACTION',
             operations: ['subQ'],
             operands: [
-                { rangeQ: { min: [1,4], max: [16,4] } },
-                { rangeQ: { min: [1,12], max: [18,12] } },
+                { rangeQ: { min: [1, 8], max: [64, 8] } },
+                { rangeQ: { min: [1, 12], max: [24, 12] } },
             ]
         };
         const sets = await makeSet([opts])
         sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
     });
 
-    it('should generate mult fraction 2/3 * 5/8 = 5/12', async function() {
+    it('should generate mult fraction 2/3 * 5/8 = 5/12', async function () {
         const o: Options = {
             quantity: 1,
             set: 'Q',
@@ -640,25 +638,6 @@ describe('Fraction API', function () {
         sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
     });
 
-    it('should generate div fraction 5/12 / 5/8 = 2/3', async () => {
-        const o: Options = {
-            quantity: 1,
-            set: 'Q',
-            extension: 'DIV_FRACTION',
-            operations: ['ratio'],
-            operands: [
-                { exactMatchOf: [5, 12] },
-                { exactMatchOf: [5, 8] },
-            ]
-        }
-        const sets = await makeSet([o])
-        const rs: Rendered[] = sets[0].exercises[0].rendered
-        assert.isDefined(rs)
-        assert.equal(rs[0].rendered, ' 5 5  ? ?  ?*? ?0 ?')
-        assert.equal(rs[1].rendered, '__:_=__*_=____=__=_')
-        assert.equal(rs[2].rendered, '12 8 1? ? 1?*? ?0 ?')
-    });
-
     it('should generate div fractions exercises from options', async () => {
         const sets = await makeSet([div_fraction])
         sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
@@ -671,11 +650,29 @@ describe('Fraction API', function () {
             extension: 'DIV_FRACTION',
             operations: ['ratio'],
             operands: [
-                { rangeQ: { min: [1, 12], max: [36, 12] } },
-                { rangeQ: { min: [1, 12], max: [24, 12] } },
+                { rangeQ: { min: [1, 36], max: [144, 36] } },
+                { rangeQ: { min: [1, 36], max: [72, 36] } },
             ]
         }
         const sets = await makeSet([o])
         sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
+    });
+   
+    it('[BUGFIX] should generate mult fraction 1/6 * 1/3 = 1/18', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'MULT_FRACTION',
+            operations: ['multQ'],
+            operands: [
+                { exactMatchOf: [1, 6] },
+                { exactMatchOf: [1, 3] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '1 1 1*1  1')
+        assert.equal(rs[1].rendered, '_*_=___=__')
+        assert.equal(rs[2].rendered, '6 3 ?*? 1?')
     });
 });

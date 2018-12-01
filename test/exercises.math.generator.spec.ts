@@ -90,7 +90,6 @@ describe('Generation with Constraints', () => {
             { rangeQ: { min: [1, 6], max: [1, 2] } }
         ]
 
-        //console.log('### GIVEN ' + JSON.stringify(operandConstraints))
         const expr: Expression = generateRationalExpression([addFraction], operandConstraints, {})
         assert.exists(expr)
 

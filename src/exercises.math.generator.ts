@@ -188,7 +188,6 @@ export function generateRationalExpression(
             console.error('[ERROR] no valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
             throw new Error('No valid Expression generated for operands ' + JSON.stringify(operandsConstraints) + ' and result ' + JSON.stringify(resultConstraints) + ' within ' + MAX_TRIES + ' tries')
         }
-        // console.log('### RUNNING ... ')
     } while (loop_again);
     if (expression.operands) {
         const _tmp: [number, number][] = <[number, number][]>expression.operands

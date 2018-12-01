@@ -5,6 +5,7 @@ import {
     funcMap,
     Fraction
 } from './exercises.math';
+import { gcd } from './exercises.math.extensions';
 
 export type RenderedType =
     'FIRST_ROW'
@@ -475,7 +476,7 @@ function renderExtensionFraction(exercise: Exercise, sign: string) {
             _i = _i + 2
         }
         // 2nd term mult = 3rd term div: (extension 0 + extension 1 ) / extension 2
-        const term2: FractionToken = { n: + _exts[_i][0] + '*' + _exts[_i + 1][0], d: _exts[_i][1] + '*' + _exts[_i + 1][1] }
+        const term2: FractionToken = { n: _exts[_i][0] + '*' + _exts[_i][1], d: _exts[_i + 1][0] + '*' + _exts[_i + 1][1] }
         const renderedToken2: FractionRendered = _renderFractionToken(term2)
         _rendered = _append(_rendered, renderedToken2)
         _i = _i + 2
@@ -483,8 +484,10 @@ function renderExtensionFraction(exercise: Exercise, sign: string) {
         // possible shortening
         const term3: FractionToken = _exts[_i] ? { n: _exts[_i][0].toString(), d: _exts[_i][1].toString() } : undefined
         if (term3) {
-            const shorten_term = _renderFractionToken(term3)
-            _rendered = _append(_rendered, shorten_term)
+            if (gcd(Number.parseInt(term3.n), Number.parseInt(term3.d)) > 1) {
+                const shorten_term = _renderFractionToken(term3)
+                _rendered = _append(_rendered, shorten_term)
+            }
         }
     }
 
@@ -531,7 +534,7 @@ export function _renderFractionToken(token1: FractionToken, opts?: {}): Fraction
         }
     }
 
-    const _n = _fillSpace(space_nom) + token1.n
+    let _n = _fillSpace(space_nom) + token1.n
     const _l = _fillLine(len_str)
     let _d = _fillSpace(space_den) + token1.d
 
@@ -539,6 +542,8 @@ export function _renderFractionToken(token1: FractionToken, opts?: {}): Fraction
         if (opts['type'] && opts['type'] === 'CONVERT_QUANTITIES') {
             if (_d.length < _n.length) {
                 _d = _d + _fillSpace(_n.length - _d.length)
+            } else if(_n.length < _d.length) {
+                _n = _n + _fillSpace(_d.length - _n.length)
             }
         }
     }

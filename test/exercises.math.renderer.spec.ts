@@ -8,6 +8,8 @@ import {
     renderExtensionsMultiplication,
     renderExtensionsDivEven,
     renderExtensionFractionAdd,
+    renderExtensionFractionMult,
+    renderExtensionFractionDiv,
     Rendered,
     _calculateGap,
     _renderFractionToken
@@ -47,6 +49,73 @@ describe('Renderer Functions', function () {
         assert.equal(actual["den"], " 8")
     })
 })
+
+/**
+ * Fraction Multiplication Render API
+ */
+describe('Render Mult Fractions', () => {
+    it('should render nothing for "undefined"', () => {
+        assert.isUndefined(renderExtensionFractionMult(undefined))
+    })
+
+    const exercise01: Exercise = {
+        expression: { operations: ['MULT_FRACTION'], operands: [[1, 6], [1, 3]], value: [1, 18] },
+        extension: {
+            type: 'MULT_FRACTION',
+            extensions: [{
+                operands: [[1, 1], [6, 3]], value: [1, 18]
+            }]
+        }
+    }
+    it('[BUGFIX] should render correct: ' + JSON.stringify(exercise01), () => {
+        const actuals: Rendered[] = renderExtensionFractionMult(exercise01).rendered
+        assert.isArray(actuals)
+        assert.equal(actuals[0].rendered, '1 1 1*1  1')
+        assert.equal(actuals[1].rendered, '_*_=___=__')
+        assert.equal(actuals[2].rendered, '6 3 6*3 18')
+    })
+
+})
+
+/**
+ * Fraction Division Render API
+ */
+describe('Render Div Fractions', () => {
+    const exercise01: Exercise = {
+        expression: { operations: ['DIV_FRACTION'], operands: [[9, 4], [2, 1]], value: [9, 8] },
+        extension: {
+            type: 'DIV_FRACTION',
+            extensions: [{
+                operands: [[9, 4], [1, 2], [9, 1], [4, 2]], value: [9, 8]
+            }]
+        }
+    }
+    it('[BUGFIX] should render correct: ' + JSON.stringify(exercise01), () => {
+        const actuals: Rendered[] = renderExtensionFractionDiv(exercise01).rendered
+        assert.isArray(actuals)
+        assert.equal(actuals[0].rendered, '9 2 9 1 9*1 9')
+        assert.equal(actuals[1].rendered, '_:_=_*_=___=_')
+        assert.equal(actuals[2].rendered, '4 1 4 2 4*2 8')
+    })
+
+    const exercise02: Exercise = {
+        expression: { operations: ['DIV_FRACTION'], operands: [[5, 12], [5, 8]], value: [2, 3] },
+        extension: {
+            type: 'DIV_FRACTION',
+            extensions: [{
+                operands: [[5, 12], [8, 5], [5, 8], [12, 5], [40, 60]], value: [2, 3]
+            }]
+        }
+    }
+    it('[BUGFIX] should render correct: ' + JSON.stringify(exercise02), () => {
+        const rs: Rendered[] = renderExtensionFractionDiv(exercise02).rendered
+        assert.isDefined(rs)
+        assert.equal(rs[0].rendered, ' 5 5  5 8  5*8 40 2')
+        assert.equal(rs[1].rendered, '__:_=__*_=____=__=_')
+        assert.equal(rs[2].rendered, '12 8 12 5 12*5 60 3')
+    });
+})
+
 
 /**
  * Fraction Addition Render API
@@ -96,7 +165,7 @@ describe('Render Addition of Fractions', () => {
  */
 describe('Render Multiplication Grids', function () {
 
-    it('bugfix test 500 * 4 = 2000', () => {
+    it('[BUGFIX] test 500 * 4 = 2000', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -148,7 +217,7 @@ describe('Render Division even', function () {
         assert.equal(gap3, 5)
     })
 
-    it('bugfix test 2607 : 11 = 237', () => {
+    it('[BUGFIX] test 2607 : 11 = 237', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -178,7 +247,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '     0')
     });
 
-    it('bugfix test 605 : 11 = 55', () => {
+    it('[BUGFIX] test 605 : 11 = 55', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -203,7 +272,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[4].rendered, '    0')
     });
 
-    it('bugfix test 990 : 11 = 90', () => {
+    it('[BUGFIX] test 990 : 11 = 90', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -228,7 +297,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[4].rendered, '    0')
     });
 
-    it('bugfix test 902 : 11 = 82', () => {
+    it('[BUGFIX] test 902 : 11 = 82', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -253,7 +322,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[4].rendered, '    0')
     });
 
-    it('bugfix test 450 : 3 = 150', () => {
+    it('[BUGFIX] test 450 : 3 = 150', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -273,7 +342,6 @@ describe('Render Division even', function () {
             }
         }
         const actRendStrs = renderExtensionsDivEven(given).rendered
-        //console.log('### RENDERED ' + JSON.stringify(actRendStrs))
         assert.equal(7, actRendStrs.length);
         assert.equal(actRendStrs[0].rendered, '  450 : 3 = 150');
         assert.equal(actRendStrs[1].rendered, '- 3');
@@ -284,7 +352,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '    0')
     });
 
-    it('bugfix test 1100 : 10 = 110', () => {
+    it('[BUGFIX] test 1100 : 10 = 110', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -314,7 +382,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '     0')
     });
 
-    it('bugfix test 1899 : 9 = 211', () => {
+    it('[BUGFIX] test 1899 : 9 = 211', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -344,7 +412,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '     0')
     });
 
-    it('bugfix test 1012 : 4 = 253', () => {
+    it('[BUGFIX] test 1012 : 4 = 253', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -375,7 +443,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '     0')
     });
 
-    it('bugfix test 636 : 6 = 106', () => {
+    it('[BUGFIX] test 636 : 6 = 106', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -406,7 +474,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[6].rendered, '    0')
     });
 
-    it('bugfix test 627 : 11 = 57', () => {
+    it('[BUGFIX] test 627 : 11 = 57', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -431,7 +499,7 @@ describe('Render Division even', function () {
         assert.equal(actRendStrs[4].rendered, '    0');
     });
 
-    it('bugfix test 186 : 3 = 62', () => {
+    it('[BUGFIX] test 186 : 3 = 62', () => {
         const given: Exercise = {
             rendered: [],
             expression: {
@@ -483,7 +551,7 @@ describe('Render Division even', function () {
     });
 
 
-    it('bugfix test undefined state at inversion for d_2 = 70 and q_0 = 9', () => {
+    it('[BUGFIX] undefined state at inversion for d_2 = 70 and q_0 = 9', () => {
         const given: Exercise = {
             rendered: [],
             expression: {

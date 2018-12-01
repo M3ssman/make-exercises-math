@@ -164,7 +164,7 @@ function _invert(ns: number[][]): number[][] {
             if (ns[mr] !== undefined && ns[mr][mc] !== undefined) {
                 i.push(ns[mr][mc]);
             } else {
-                console.log('[WARN] invalid ns = ' + JSON.stringify(ns) + ' at mr = ' + mr + ', mc = ' + mc + ' !');
+                console.warn('[WARN] invalid ns = ' + JSON.stringify(ns) + ' at mr = ' + mr + ', mc = ' + mc + ' !');
             }
         }
         ms.push(i);
@@ -535,19 +535,19 @@ function createExtensionDivFractionOperands(expression: Expression): any[] {
     let ops = []
     const o1: Fraction = <Fraction>expression.operands[0]
     const o2: Fraction = <Fraction>expression.operands[1]
-    // 1st term a - invert ops
+    // term zero: o1 * inverted o2 
     const _o1 = o1
     const _o2: [number, number] = [o2[1], o2[0]]
     ops.push(_o1, _o2)
 
-    // 1st term b - push again mult inverted
-    ops.push(_o1, _o2)
+    // 1st term - factors
+    ops.push([_o1[0],_o2[0]], [_o1[1], _o2[1]])
 
-    // 2nd term
+    // 2nd term - products
     const _2nd: [number, number] = [_o1[0] * _o2[0], _o1[1] * _o2[1]]
     ops.push(_2nd)
 
-    // maybe kuerzen?
+    // maybe products kuerzen?
     _handlePossibleKuerzen(_2nd, expression, ops)
 
     return ops
