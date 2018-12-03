@@ -101,7 +101,6 @@ export interface Properties {
     label?: string;
     extension?: ExtensionType;
     maskeer?: MaskType;
-    level?: number;
 }
 
 export interface Expression {
@@ -206,7 +205,7 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
             .filter(option => option.operations.indexOf("div") > -1)
             .map(option => {
                 const _exercise: Exercise[] = [];
-                const _props: Properties = { set: "N", level: option.level, operations: option.operations };
+                const _props: Properties = { set: "N", operations: option.operations };
                 const _q = option.quantity || 12;
                 if (option.extension) {
                     _props.extension = option.extension;
