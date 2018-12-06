@@ -24,3 +24,6 @@ sonar-project.properties
 
 # no typscript defs
 **/*.d.ts
+
+# no local generated test-data
+test_make_exercises_*.pdf

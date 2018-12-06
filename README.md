@@ -6,7 +6,7 @@ Makes Fundamental mathematical Exercises based on special Constraints or from pr
 
 ## Exercise Types
 
-The central API is called "makeSet". It expecteds an Set of Exercise Types as Input and returns a Promise Set of Exercise with Expressions and Rendered Output were some Parts of the Exercises and the Result, too, are masked and therefore must be filled in.
+The central API is called "makeSet". It expects Options for Exercise Types as Input and promises a Set of Exercise with Expressions and Rendered Output were some Parts of the Exercises (and the Result, too), are masked and therefore must be filled in.
 
 Each ExerciseType is labelled with a prefix that determines it's Operation ("add", "sub", and so on), as well as it'n Numerical Range and Constraints for the Operands and/or the Result.
 

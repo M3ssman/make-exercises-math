@@ -32,6 +32,12 @@ import {
 import {
     mask
 } from './exercises.math.maskeer';
+import {
+    preparePageOptions,
+    PageOptions,
+    extractExerciseTypes,
+    asPDF
+} from './exercises.serializer'
 
 /**
  * 
@@ -158,7 +164,7 @@ const rendererMap: { [key: string]: Renderer } = {
 /**
  * SINGLE_LINE Options
  */
-const SINGLE_LINEAdd: Options = {
+export const SINGLE_LINEAdd: Options = {
     quantity: 12,
     level: 1,
     set: "N",
@@ -267,6 +273,20 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     });
 }
 
+/**
+ * 
+ * Deliver Exercises as PDF Data to NodeJS.WriteableStream
+ * 
+ * @param targetStream 
+ * @param opts 
+ * @param pageOpts 
+ */
+export async function makeExercisePDF<T extends NodeJS.WritableStream>(targetStream:T, typesString?: string, pageOpts?:PageOptions): Promise<void> {
+    const opts: Options[] = extractExerciseTypes(typesString)
+    const sets: ExerciseSet[] = await makeSet(opts)
+    const _pageOpts: PageOptions = preparePageOptions(pageOpts)
+    return asPDF(sets, _pageOpts, targetStream)
+}
 
 /**
  * Basic Binary Operations

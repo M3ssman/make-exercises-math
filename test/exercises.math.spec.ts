@@ -1,4 +1,6 @@
-import { assert } from 'chai';
+import { assert } from 'chai'
+import * as fs from 'fs'
+
 import {
     addFraction,
     subFraction,
@@ -8,7 +10,8 @@ import {
     Exercise,
     ExerciseSet,
     Options,
-    makeSet
+    makeSet,
+    makeExercisePDF
 } from '../src/exercises.math';
 import {
     addN50N25Nof10,
@@ -20,7 +23,6 @@ import {
     mult_N999_N999,
     div_even,
     add_fraction,
-    sub_fraction,
     mult_fraction,
     div_fraction
 } from '../src/exercises.math.options';
@@ -657,7 +659,7 @@ describe('Fraction API', function () {
         const sets = await makeSet([o])
         sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
     });
-   
+
     it('[BUGFIX] should generate mult fraction 1/6 * 1/3 = 1/18', async function () {
         const o: Options = {
             quantity: 1,
@@ -674,5 +676,14 @@ describe('Fraction API', function () {
         assert.equal(rs[0].rendered, '1 1 1*1  1')
         assert.equal(rs[1].rendered, '_*_=___=__')
         assert.equal(rs[2].rendered, '6 3 ?*? 1?')
-    });
-});
+    })
+
+    const timestamp = Date.now()
+    const exercises = 'div_even,mult_fraction'
+    const fileName = 'test_make_exercises_serializer_' + timestamp + '.pdf'
+
+    it('should serialize "' + exercises + '" NodeJS Stream to "' + fileName + '"', async () => {
+        const fsStream: NodeJS.WritableStream = fs.createWriteStream(fileName)
+        await makeExercisePDF(fsStream, exercises)
+    })
+})
