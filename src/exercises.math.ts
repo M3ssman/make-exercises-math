@@ -184,10 +184,11 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     return new Promise((resolve, reject) => {
         const options = (opts && opts.length > 0) ? opts : [SINGLE_LINEAdd];
         const excWithoutDiv: ExerciseSet[] = options
-            .filter(option => option.operations.indexOf("div") < 0)
+            .filter((option:Options )=> option.operations.indexOf("div") < 0)
             .map(option => {
                 const _exercises: Exercise[] = [];
                 const _props: Properties = option;
+                _props.label = option.label
                 const _q = option.quantity || 12;
                 for (let i = 0; i < _q; i++) {
                     let _funcMap: any = funcMap
@@ -211,7 +212,7 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
             .filter(option => option.operations.indexOf("div") > -1)
             .map(option => {
                 const _exercise: Exercise[] = [];
-                const _props: Properties = { set: "N", operations: option.operations };
+                const _props: Properties = { label: option.label, set: "N", operations: option.operations };
                 const _q = option.quantity || 12;
                 if (option.extension) {
                     _props.extension = option.extension;
