@@ -24,7 +24,6 @@ export const addN50N10: Options = {
     label: "addN50N10", 
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['add'],
     operands: [
         { rangeN: rangeN80N10, greaterThanIndex: 1 },
@@ -32,9 +31,9 @@ export const addN50N10: Options = {
     ]
 };
 export const addN50N25Nof10: Options = {
+    label: 'addN50N25Nof10',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['add'],
     operands: [
         { rangeN: rangeN50N10, greaterThanIndex: 1 },
@@ -43,9 +42,9 @@ export const addN50N25Nof10: Options = {
     result: { multipleOf: 10 }
 };
 export const addN50N19: Options = {
+    label: 'addN50N19',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['add'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN50N10 },
@@ -54,9 +53,9 @@ export const addN50N19: Options = {
 };
 
 export const subN99N10Nof10: Options = {
+    label: 'subN99N10Nof10',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN99N10 },
@@ -65,9 +64,9 @@ export const subN99N10Nof10: Options = {
     result: { multipleOf: 10 }
 };
 export const subN50N10: Options = {
+    label: 'subN50N10',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN99N10 },
@@ -75,9 +74,9 @@ export const subN50N10: Options = {
     ]
 };
 export const subN99N19: Options = {
+    label: 'subN99N19',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN99N10 },
@@ -85,9 +84,9 @@ export const subN99N19: Options = {
     ]
 };
 export const subN99N19Nof10: Options = {
+    label: 'subN99N19Nof10',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['sub'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN99N10 },
@@ -97,9 +96,9 @@ export const subN99N19Nof10: Options = {
 };
 
 export const multN10N10: Options = {
+    label: 'multN10N10',
     quantity: 12,
     set: 'N',
-    level: 1,
     operations: ['mult'],
     operands: [
         { greaterThanIndex: 1, rangeN: rangeN10 },
@@ -108,9 +107,9 @@ export const multN10N10: Options = {
 };
 
 export const add_add_: Options = {
+    label: 'add_add_',
     quantity: 12, 
     set: 'N',
-    level: 1,
     operations: ['add', 'add'],
     operands: [
         { rangeN: rangeN100 },
@@ -120,9 +119,9 @@ export const add_add_: Options = {
 };
 
 export const addN50N25subN20: Options = {
+    label: 'addN50N25subN20',
     quantity: 12, 
     set: 'N',
-    level: 1,
     operations: ['add', 'sub'],
     operands: [
         { rangeN: rangeN50N10 },
@@ -132,14 +131,15 @@ export const addN50N25subN20: Options = {
 };
 
 export const divN100WithRest: Options = {
+    label: 'divN100WithRest',
     set: 'N',
     operations: ['div']
 };
 
 export const add_add_carry: Options = {
+    label: 'add_add_carry',
     quantity: 6,
     set: 'N',
-    level: 2,
     operations: ['add', 'add'],
     extension: "ADD_CARRY",
     operands: [
@@ -150,9 +150,9 @@ export const add_add_carry: Options = {
 };
 
 export const sub_carry: Options = {
+    label: 'sub_carry',
     quantity: 6,
     set: 'N',
-    level: 3,
     extension: 'SUB_CARRY',
     operations: ['sub'],
     operands: [
@@ -162,9 +162,9 @@ export const sub_carry: Options = {
 };
 
 export const mult_N999_N9: Options = {
+    label: 'mult_N999_N9',
     quantity: 6,
     set: 'N',
-    level: 4,
     extension: 'MULT_MULT',
     operations: ['mult'],
     operands: [
@@ -174,9 +174,9 @@ export const mult_N999_N9: Options = {
 };
 
 export const mult_N999_N99: Options = {
+    label: 'mult_N999_N99',
     quantity: 3,
     set: 'N',
-    level: 4,
     extension: 'MULT_MULT',
     operations: ['mult'],
     operands: [
@@ -186,9 +186,9 @@ export const mult_N999_N99: Options = {
 };
 
 export const mult_N999_N999: Options = {
+    label: 'mult_N999_N999',
     quantity: 3,
     set: 'N',
-    level: 4,
     extension: 'MULT_MULT',
     operations: ['mult'],
     operands: [
@@ -198,9 +198,9 @@ export const mult_N999_N999: Options = {
 };
 
 export const div_even: Options = {
+    label: 'div_even',
     quantity: 4,
     set: 'N',
-    level: 4,
     extension: 'DIV_EVEN',
     operations: ['div'],
     operands: [
@@ -210,6 +210,7 @@ export const div_even: Options = {
 };
 
 export const add_fraction: Options = {
+    label: 'add_fraction',
     quantity: 8,
     set: 'Q',
     extension: 'ADD_FRACTION',
@@ -221,6 +222,7 @@ export const add_fraction: Options = {
 };
 
 export const sub_fraction: Options = {
+    label: 'sub_fraction',
     quantity: 8,
     set: 'Q',
     extension: 'SUB_FRACTION',
@@ -232,6 +234,7 @@ export const sub_fraction: Options = {
 };
 
 export const mult_fraction: Options = {
+    label: 'mult_fraction',
     quantity: 8,
     set: 'Q',
     extension: 'MULT_FRACTION',
@@ -243,6 +246,7 @@ export const mult_fraction: Options = {
 }
 
 export const div_fraction: Options = {
+    label: 'div_fraction',
     quantity: 8,
     set: 'Q',
     extension: 'DIV_FRACTION',

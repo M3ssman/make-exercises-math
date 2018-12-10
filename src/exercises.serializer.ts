@@ -4,16 +4,13 @@ import {
     ExerciseSet,
     Exercise,
     Options,
-    SINGLE_LINEAdd
+    add_default
 } from './exercises.math'
 import * as extype from './exercises.math.options'
 import {
     Rendered,
     RenderedType
 } from './exercises.math.renderer'
-import { type } from 'os';
-import { create } from 'domain';
-import { appendFileSync } from 'fs';
 
 /**
  * 
@@ -68,7 +65,7 @@ export function extractExerciseTypes(types: string): Options[] {
             .map(t => extype[t]);
     } else {
         console.warn('[WARN] no Exercises identified for "' + types + '" => return [defaultAdd]')
-        return [SINGLE_LINEAdd];
+        return [add_default];
     }
 }
 
@@ -87,7 +84,7 @@ export function asPDF<T extends NodeJS.WritableStream>(sets: ExerciseSet[], page
     // prepare width, indents, nr of exercises
     let y = 150
     let x = 40
-    let CURRENT_MAX_CHARS = 120
+    let EXERCISE_MAX_CHARS = 1
     let a = 1
 
     // collect instructions: what and where to process
@@ -100,8 +97,7 @@ export function asPDF<T extends NodeJS.WritableStream>(sets: ExerciseSet[], page
         // now process exercises ... 
         set.exercises.forEach((exc: Exercise) => {
             const rendered: Rendered[] = exc.rendered
-            CURRENT_MAX_CHARS = rendered.map(r => r.rendered.length).reduce((p, c) => c > p ? c : p, 0)
-            console.log('### FOUND max width "' + CURRENT_MAX_CHARS + '" for ' + set.properties.label)
+            const CURRENT_MAX_CHARS = rendered.map(r => r.rendered.length).reduce((p, c) => c > p ? c : p, 0)
             if (typeof rendered === 'object') {
                 if (rendered.length === 1) {
                     instrs.push(makeInstruction('textAt', rendered[0].rendered, x, y))
@@ -113,10 +109,14 @@ export function asPDF<T extends NodeJS.WritableStream>(sets: ExerciseSet[], page
                     y += 15;
                 }
             }
+            // store MAX_CHARS of this exercise compared to all previous
+            if(CURRENT_MAX_CHARS > EXERCISE_MAX_CHARS) {
+                EXERCISE_MAX_CHARS = CURRENT_MAX_CHARS
+            }
         });
         a++;
         // some horizontal space two preceeding exercise sets
-        x += (CURRENT_MAX_CHARS + ADDITIONAL_WHITESPACES_BETWEEN) * CHAR_WIDTH
+        x += (EXERCISE_MAX_CHARS + ADDITIONAL_WHITESPACES_BETWEEN) * CHAR_WIDTH
         y = 150;
     });
     // now apply all collected instructions

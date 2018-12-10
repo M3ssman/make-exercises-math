@@ -96,7 +96,6 @@ export interface Options {
     extension?: ExtensionType;
     maskeer?: MaskType;
     quantity?: number;
-    level?: number;
     operands?: Constraint[];
     result?: Constraint;
 }
@@ -164,9 +163,9 @@ const rendererMap: { [key: string]: Renderer } = {
 /**
  * SINGLE_LINE Options
  */
-export const SINGLE_LINEAdd: Options = {
+export const add_default: Options = {
+    label: 'add_default',
     quantity: 12,
-    level: 1,
     set: "N",
     operations: ['add'],
     operands: [
@@ -182,7 +181,7 @@ export const SINGLE_LINEAdd: Options = {
  */
 export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     return new Promise((resolve, reject) => {
-        const options = (opts && opts.length > 0) ? opts : [SINGLE_LINEAdd];
+        const options = (opts && opts.length > 0) ? opts : [add_default];
         const excWithoutDiv: ExerciseSet[] = options
             .filter((option:Options )=> option.operations.indexOf("div") < 0)
             .map(option => {

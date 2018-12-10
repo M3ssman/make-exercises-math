@@ -32,7 +32,7 @@ describe('Serializer API', () => {
         asPDF(sets, metaData, fsStream)
     })
 
-    it('should respect defaults for colors and lines', () => {
+    it('should respect defaults for colors and lines and serialize them into "'+ fileName2+'"', () => {
         const doc: PDFKit.PDFDocument = new PDFDocument({ 'size': default_pageDim });
         doc.font(default_pdfkit_fontsrc, default_fontfamily, default_fontsize)
         const i0: Instruction = makeInstruction('textAt', 'TEST DEFAULT TEXT FLOW')
