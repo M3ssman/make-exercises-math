@@ -102,7 +102,7 @@ Out-of-the-Box, there are the following Exercises included:
 * mult_fraction
 * div_fraction
 
-The Name reflects the intents. What the Parts `add` or `div` stand for, is self-explanatory. The Operations are sometimes mixed with the numerical Ranges, to  signal the Numerical Range, especially in the beginning for [1 .. 20] or [1 .. 100]. Therefore, `subN99N19Nof10` means: "Subtraction Exercises, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". 
+What `add` or `div` stand for, is self-explanatory. The Operations are sometimes mixed with the numerical Ranges, to  signal the Numerical Range, especially in the beginning for [1 .. 20] or [1 .. 100]. Therefore, `subN99N19Nof10` means: "Subtraction Exercises, where the Minuend is between 1-99, the Subtrahend is between 0-19 and the final Difference is a multiple of 10". 
 
 If explicite Numerical Ranges are missing, it is using defaults depending on the Exercises Type. The Fraction Exercises operate per default with Rational Numbers in a rather small Range [1/8 | 1/12 ... 2/3]. 
 

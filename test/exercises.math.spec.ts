@@ -146,7 +146,7 @@ describe('ExerciseTypes', function () {
 describe('ChainOperators', function () {
     it('should generate 2 Exercises with 3 operands and 2x add', async () => {
         const opts: Options = {
-            quantity: 2, level: 1, set: "N",
+            quantity: 2, set: "N",
             operations: ['add', 'add']
         };
         const set = await makeSet([opts])
@@ -161,7 +161,7 @@ describe('ChainOperators', function () {
 
     it('should generate 2 Exercises with 3 operands, add and sub', async () => {
         const opts: Options = {
-            quantity: 2, level: 1, set: "N",
+            quantity: 2, set: "N",
             operations: ['add', 'sub'],
             operands: [
                 { rangeN: { min: 20, max: 50 } },
@@ -183,7 +183,7 @@ describe('ChainOperators', function () {
 
     it('should generate Exercise with 4x mult', async () => {
         const opts: Options = {
-            level: 1, quantity: 1, set: "N",
+            quantity: 1, set: "N",
             operations: ['mult', 'mult', 'mult', 'mult'],
             operands: [
                 { rangeN: { max: 5 } },
@@ -210,7 +210,7 @@ describe('Addition with Carry', function () {
             quantity: 1,
             set: 'N',
             extension: 'ADD_CARRY',
-            level: 2,
+            label: 'add_carry',
             operations: ['add', 'add'],
             operands: [{ exactMatchOf: 9903 }, { exactMatchOf: 819 }, { exactMatchOf: 77 }]
         };
@@ -228,7 +228,7 @@ describe('Addition with Carry', function () {
         const opts: Options = {
             quantity: 1,
             extension: 'ADD_CARRY',
-            level: 2,
+            label: 'add_carry',
             set: "N",
             operations: ['add', 'add'],
             operands: [{ exactMatchOf: 601 }, { exactMatchOf: 373 }, { exactMatchOf: 83 }]
@@ -248,7 +248,7 @@ describe('Addition with Carry', function () {
     it('regression test 4250+314+80 should generate carry 100', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 2,
+            label: 'add_carry',
             extension: 'ADD_CARRY',
             set: "N",
             operations: ['add', 'add'],
@@ -269,7 +269,7 @@ describe('Addition with Carry', function () {
     it('regression test 6714+306+75 should generate carry 1010', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 2,
+            label: 'add_carry',
             extension: 'ADD_CARRY',
             set: "N",
             operations: ['add', 'add'],
@@ -294,7 +294,7 @@ describe('Subtraction with Carry', function () {
     it('should generate 1 Subtraction with Carry ', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 3,
+            label: 'sub_carry',
             set: "N",
             extension: 'SUB_CARRY',
             operations: ['sub'],
@@ -322,7 +322,7 @@ describe('Subtraction with Carry', function () {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -351,7 +351,7 @@ describe('Subtraction with Carry', function () {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -379,7 +379,7 @@ describe('Subtraction with Carry', function () {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -407,7 +407,6 @@ describe('Multiplication with grid-like Extensions', function () {
     it('should generate Mulitplication Extensions for f_1 = 755 , f_2 = 6', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 4,
             extension: 'MULT_MULT',
             set: "N",
             operations: ['mult'],
@@ -468,7 +467,7 @@ describe('Division without rest API', function () {
     it('[BUGFIX] test 627 : 11 = 57', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 5,
+            label: 'div_even',
             set: "N",
             extension: 'DIV_EVEN',
             operations: ['div'],
@@ -488,7 +487,7 @@ describe('Division without rest API', function () {
     it('[BUGFIX] test 1012 : 4 = 253', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 5,
+            label: 'div_even',
             set: "N",
             extension: 'DIV_EVEN',
             operations: ['div'],
@@ -521,7 +520,7 @@ describe('Division without rest API', function () {
         const os: Options = {
             quantity: 1000,
             set: 'N',
-            level: 4,
+            label: 'div_even',
             extension: 'DIV_EVEN',
             operations: ['div'],
             operands: [
