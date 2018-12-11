@@ -12,7 +12,9 @@ import {
     renderExtensionsMultiplication,
     renderExtensionsDivEven,
     renderExtensionFractionAdd,
-    renderExtensionFractionSub
+    renderExtensionFractionSub,
+    renderExtensionFractionMult,
+    renderExtensionFractionDiv
 } from './exercises.math.renderer';
 import {
     Extensioneer,
@@ -23,11 +25,19 @@ import {
     extendDivEven,
     extendAddFraction,
     extendSubFraction,
+    extendMultFraction,
+    extendDivFraction,
     gcd
 } from './exercises.math.extensions';
 import {
     mask
 } from './exercises.math.maskeer';
+import {
+    preparePageOptions,
+    PageOptions,
+    extractExerciseTypes,
+    asPDF
+} from './exercises.serializer'
 
 /**
  * 
@@ -38,7 +48,7 @@ export type N = number[];
 export type Q = [N, N];
 export type Fraction = [number, number];
 export type Set = 'Q' | 'N';
-export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ' | 'subQ';
+export type Operation = 'add' | 'sub' | 'mult' | 'div' | 'addQ' | 'subQ' | 'multQ' | 'ratio';
 
 /**
  * What kind of Extension to generate
@@ -52,6 +62,8 @@ export type ExtensionType =
     | 'DIV_EVEN'
     | 'ADD_FRACTION'
     | 'SUB_FRACTION'
+    | 'MULT_FRACTION'
+    | 'DIV_FRACTION'
 
 export type MaskType =
     ''
@@ -84,7 +96,6 @@ export interface Options {
     extension?: ExtensionType;
     maskeer?: MaskType;
     quantity?: number;
-    level?: number;
     operands?: Constraint[];
     result?: Constraint;
 }
@@ -95,7 +106,6 @@ export interface Properties {
     label?: string;
     extension?: ExtensionType;
     maskeer?: MaskType;
-    level?: number;
 }
 
 export interface Expression {
@@ -133,7 +143,9 @@ const extensioneerMap: { [key: string]: Extensioneer } = {
     'SUB_CARRY': extendSubCarry,
     'MULT_MULT': extendMultCarry,
     'ADD_FRACTION': extendAddFraction,
-    'SUB_FRACTION': extendSubFraction
+    'SUB_FRACTION': extendSubFraction,
+    'MULT_FRACTION': extendMultFraction,
+    'DIV_FRACTION': extendDivFraction
 }
 
 const rendererMap: { [key: string]: Renderer } = {
@@ -143,15 +155,17 @@ const rendererMap: { [key: string]: Renderer } = {
     'MULT_MULT': renderExtensionsMultiplication,
     'ADD_FRACTION': renderExtensionFractionAdd,
     'SUB_FRACTION': renderExtensionFractionSub,
+    'MULT_FRACTION': renderExtensionFractionMult,
+    'DIV_FRACTION': renderExtensionFractionDiv,
     'SINGLE_LINE': renderDefault
 }
 
 /**
  * SINGLE_LINE Options
  */
-const SINGLE_LINEAdd: Options = {
+export const add_default: Options = {
+    label: 'add_default',
     quantity: 12,
-    level: 1,
     set: "N",
     operations: ['add'],
     operands: [
@@ -167,12 +181,13 @@ const SINGLE_LINEAdd: Options = {
  */
 export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     return new Promise((resolve, reject) => {
-        const options = (opts && opts.length > 0) ? opts : [SINGLE_LINEAdd];
+        const options = (opts && opts.length > 0) ? opts : [add_default];
         const excWithoutDiv: ExerciseSet[] = options
-            .filter(option => option.operations.indexOf("div") < 0)
+            .filter((option:Options )=> option.operations.indexOf("div") < 0)
             .map(option => {
                 const _exercises: Exercise[] = [];
                 const _props: Properties = option;
+                _props.label = option.label
                 const _q = option.quantity || 12;
                 for (let i = 0; i < _q; i++) {
                     let _funcMap: any = funcMap
@@ -182,9 +197,11 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
                         _generatorFunc = generateRationalExpression
                     }
                     const functs = option.operations.map(operation => _funcMap[operation].func);
-                    if (functs.length > 0) {
-                        let exp: Expression = _generatorFunc(functs, option.operands, option.result);
+                    if (functs.length > 0 && functs[0] !== undefined) {
+                        let exp: Expression = _generatorFunc(functs, option.operands, option.result, option.operations);
                         _exercises.push({ expression: exp, rendered: [] });
+                    } else {
+                        reject('[ERROR] no function mapped for ' + JSON.stringify(option.operations))
                     }
                 }
                 return { exercises: _exercises, properties: _props };
@@ -194,7 +211,7 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
             .filter(option => option.operations.indexOf("div") > -1)
             .map(option => {
                 const _exercise: Exercise[] = [];
-                const _props: Properties = { set: "N", level: option.level, operations: option.operations };
+                const _props: Properties = { label: option.label, set: "N", operations: option.operations };
                 const _q = option.quantity || 12;
                 if (option.extension) {
                     _props.extension = option.extension;
@@ -256,9 +273,23 @@ export function makeSet(opts?: Options[]): Promise<ExerciseSet[]> {
     });
 }
 
+/**
+ * 
+ * Deliver Exercises as PDF Data to NodeJS.WriteableStream
+ * 
+ * @param targetStream 
+ * @param opts 
+ * @param pageOpts 
+ */
+export async function makeExercisePDF<T extends NodeJS.WritableStream>(targetStream:T, typesString?: string, pageOpts?:PageOptions): Promise<void> {
+    const opts: Options[] = extractExerciseTypes(typesString)
+    const sets: ExerciseSet[] = await makeSet(opts)
+    const _pageOpts: PageOptions = preparePageOptions(pageOpts)
+    return asPDF(sets, _pageOpts, targetStream)
+}
 
 /**
- * Basic Binary Functions
+ * Basic Binary Operations
  */
 export function add(a: number, b: number): number { return a + b }
 export function sub(a: number, b: number): number { return a - b }
@@ -281,23 +312,68 @@ export const funcMap: { [key: string]: OpEntry } = {
     'div': { label: ':', func: mult },
 };
 
+
+/**
+ * 
+ * Rational / Fraction Binary Operations
+ * 
+ */
+export const addFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '+')
+
+export const subFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '-')
+
+export const multFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, '*')
+
+export const divFraction: (a: Fraction, b: Fraction) => Fraction = _opFraction.bind(null, ':')
+
 export const funcMapQ: { [key: string]: OpEntryQ } = {
     'addQ': { label: '+', func: addFraction },
-    'subQ': { label: '-', func: subFraction }
+    'subQ': { label: '-', func: subFraction },
+    'multQ': { label: '*', func: multFraction },
+    'ratio': { label: ':', func: divFraction }
 }
 
-export function addFraction(a: Fraction, b: Fraction): Fraction {
-    const _sum: [number, number] = [a[0] * b[1] + b[0] * a[1], a[1] * b[1]]
-    return rationalize(_sum)
+function _opFraction(sign: string, a: Fraction, b: Fraction): Fraction {
+    if (sign === '*') {
+        const r: [number, number] = [a[0] * b[0], a[1] * b[1]]
+        return rationalize(r)
+    } else if (sign === ':') {
+        const r: [number, number] = [a[0] * b[1], a[1] * b[0]]
+        return rationalize(r)
+    } else {
+        const _d1: number = a[0] * b[1]
+        const _d2: number = b[0] * a[1]
+        const _d: number = _op(_d1, _d2, sign)
+        const _n = a[1] * b[1]
+        const _r: [number, number] = [_d, _n]
+        return rationalize(_r)
+    }
 }
 
-export function subFraction(a: Fraction, b: Fraction): Fraction {
-    const _diff: [number, number] = [a[0] * b[1] - b[0] * a[1], a[1] * b[1]]
-    return rationalize(_diff)
+function _op(d1: number, d2: number, s: string): number {
+    if (s === '+') {
+        return d1 + d2
+    } else if (s === '-') {
+        if (d1 < d2) {
+            throw new Error('[FATAL] encoutered ' + d1 + ' < ' + d2 + ' for op: "' + s + '" at subQ')
+        } else {
+            return d1 - d2
+        }
+    } else {
+        console.error('[ERROR] unknown operation sign "' + s + '" encountered, return "0"!')
+        return 0
+    }
 }
 
 export function rationalize(f: Fraction): Fraction {
     const [a, b] = f;
+    if (b === 0) {
+        throw new Error('[FATAL] Divide "' + a + '" by "0" encountered')
+    }
+    if (a === 0) {
+        console.error('[WARN][exercise.math:355] "' + a + '"/"' + b + '" return [0,0]')
+        return [0, 0]
+    }
     const _gcd = gcd(a, b);
     if (_gcd > 1) {
         return [a / _gcd, b / _gcd];

@@ -3,8 +3,9 @@ import {
     Exercise,
     Extension,
     funcMap,
-    ExtensionExpression
+    Fraction
 } from './exercises.math';
+import { gcd } from './exercises.math.extensions';
 
 export type RenderedType =
     'FIRST_ROW'
@@ -387,7 +388,27 @@ export function renderExtensionFractionSub(exercise: Exercise): Exercise {
     return renderExtensionFraction(exercise, '-')
 }
 
-function renderExtensionFraction(exercise:Exercise, sign: string) {
+export function renderExtensionFractionMult(exercise: Exercise): Exercise {
+    return renderExtensionFraction(exercise, '*')
+}
+
+export function renderExtensionFractionDiv(exercise: Exercise): Exercise {
+    return renderExtensionFraction(exercise, ':')
+}
+
+/**
+ * Util Interfaces
+ */
+export interface FractionToken {
+    n: string, d: string
+}
+export interface FractionRendered {
+    nom: string
+    str: string
+    den: string
+}
+
+function renderExtensionFraction(exercise: Exercise, sign: string) {
     let result: Rendered[] = [];
     if (!_isValid(exercise)) {
         console.error('return invalid exercise ' + JSON.stringify(exercise) + ', no Fraction Renderings done!')
@@ -395,99 +416,96 @@ function renderExtensionFraction(exercise:Exercise, sign: string) {
     }
 
     const _expr: Expression = exercise.expression
-    const _exts: [number, number][] = <[number, number][]>exercise.extension.extensions[0].operands
+    const _exts: Fraction[] = <[number, number][]>exercise.extension.extensions[0].operands
     const _val = exercise.extension.extensions[0].value
-
+    const renderedFractionTokens: FractionRendered[] = []
     // prepare all 3 rendered rows
-    let first = '', secon = '', third = ''
+    // let first = '', secon = '', third = ''
 
-    // prepare tokens
-    const s1: FractionToken = { n: _expr.operands[0][0].toString(), d: _expr.operands[0][1].toString() }
-    const s2: FractionToken = { n: _expr.operands[1][0].toString(), d: _expr.operands[1][1].toString() }
+    // prepare tokens for term 1
+    const token1: FractionToken = { n: _expr.operands[0][0].toString(), d: _expr.operands[0][1].toString() }
+    const token2: FractionToken = { n: _expr.operands[1][0].toString(), d: _expr.operands[1][1].toString() }
 
-    // prepare spaces for summand 1
-    let sn0 = calculate_additional_space(s1.n.length, s1.d.length)
-    let lt0 = s1.n.length > s1.d.length ? s1.n.length : s1.d.length
-    let sd0 = calculate_additional_space(s1.d.length, s1.n.length)
+    // prepare term 1
+    renderedFractionTokens.push(_renderFractionToken(token1), _renderFractionToken(token2))
+    const term1: FractionRendered = renderedFractionTokens
+        .reduce((p: FractionRendered, c: FractionRendered) => {
+            let next = { nom: p.nom + ' ' + c.nom, str: p.str + sign + c.str, den: p.den + ' ' + c.den }
+            return next
+        })
+    // prepare container
+    let _rendered: FractionRendered = { nom: term1.nom, str: term1.str, den: term1.den }
+    // first = term1.nom
+    // secon = term1.str
+    // third = term1.den
 
-    // prepare spaces for summand 2
-    const sn1 = calculate_additional_space(s2.n.length, s2.d.length)
-    const lt1 = s2.n.length > s2.d.length ? s2.n.length : s2.d.length
-    const sd1 = calculate_additional_space(s2.d.length, s2.n.length)
 
+    if (sign === '+' || sign === '-') {
+        // 2nd term: (extension 0 + extension 1 ) / extension 2
+        const term2: FractionToken = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')' + sign + '(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
+        const renderedToken2: FractionRendered = _renderFractionToken(term2, { type: 'CONVERT_QUANTITIES' })
+        _rendered = _append(_rendered, renderedToken2)
 
-    // 3rd term: (extension 0 + extension 1 ) / extension 2
-    const term3: FractionToken = { n: '(' + _exts[0][0] + '*' + _exts[0][1] + ')'+sign+'(' + _exts[1][0] + '*' + _exts[1][1] + ')', d: _exts[2][0] + '*' + _exts[2][1] }
-    let sn2 = calculate_additional_space(term3.n.length, term3.d.length)
-    let lt2 = term3.n.length > term3.d.length ? term3.n.length : term3.d.length
-    let sd2 = calculate_additional_space(term3.d.length, term3.n.length)
-    if (term3.n.length > term3.d.length) {
-        sd2 = Math.ceil(term3.n.length / 2) - Math.ceil(term3.d.length / 2)
-    }
+        // 3rd term: extension 3 / extension 4
+        // attention! beware of plain numbers for denominator!
+        const _d4 = _exts[4] instanceof Array ? _exts[4][0].toString() : _exts[4].toString()
+        const term3: FractionToken = { n: _exts[3][0] + sign + _exts[3][1], d: _d4 }
+        const renderedToken3: FractionRendered = _renderFractionToken(term3, { type: 'CONVERT_QUANTITIES' })
+        _rendered = _append(_rendered, renderedToken3)
 
-    // 4th term: extension 3 / extension 4
-    // attention! beware of plain numbers for denominator!
-    const _d4 = _exts[4] instanceof Array ? _exts[4][0].toString() : _exts[4].toString()
-    const term4: FractionToken = { n: _exts[3][0] + sign + _exts[3][1], d: _d4 }
-    let sn3 = term4.n.length === term4.d.length ? 0 : 1
-    let lt3 = term4.n.length > term4.d.length ? term4.n.length : term4.d.length
-    let sd3 = 0
-    if (term4.n.length !== term4.d.length) {
-        sd3 = Math.floor(term4.n.length / 2) - Math.ceil(term4.d.length / 2)
-    }
+        // optional extension with shortening term
+        const t4: FractionToken = _exts[5] ? { n: _exts[5][0].toString(), d: _exts[5][1].toString() } : undefined
+        if (t4) {
+            const shorten_term = _renderFractionToken(t4)
+            _rendered = _append(_rendered, shorten_term)
+        }
+    } else {
+        let _i = 0
+        if (sign === ':') {
+            // render div as inverted multiplication
+            const term_normal: FractionToken = { n: _exts[_i][0].toString(), d: _exts[_i][1].toString() }
+            const term_invers: FractionToken = { n: _exts[_i + 1][0].toString(), d: _exts[_i + 1][1].toString() }
+            const rendered_normal: FractionRendered = _renderFractionToken(term_normal)
+            const rendered_invers: FractionRendered = _renderFractionToken(term_invers)
+            const invers_term: FractionRendered = {
+                nom: rendered_normal.nom + ' ' + rendered_invers.nom,
+                str: rendered_normal.str + '*' + rendered_invers.str,
+                den: rendered_normal.den + ' ' + rendered_invers.den
+            }
+            _rendered = _append(_rendered, invers_term)
+            _i = _i + 2
+        }
+        // 2nd term mult = 3rd term div: (extension 0 + extension 1 ) / extension 2
+        const term2: FractionToken = { n: _exts[_i][0] + '*' + _exts[_i][1], d: _exts[_i + 1][0] + '*' + _exts[_i + 1][1] }
+        const renderedToken2: FractionRendered = _renderFractionToken(term2)
+        _rendered = _append(_rendered, renderedToken2)
+        _i = _i + 2
 
-    first = _fillSpace(sn0) + s1.n + ' ' + _fillSpace(sn1) + s2.n + ' ' + _fillSpace(sn2) + term3.n 
-    secon = _fillLine(lt0) + sign + _fillLine(lt1) + '=' + _fillLine(lt2) 
-    third = _fillSpace(sd0) + s1.d + ' ' + _fillSpace(sd1) + s2.d + ' ' + _fillSpace(sd2) + term3.d 
-    if(third.length < first.length) {
-        third = third + _fillSpace(first.length - third.length)
-    }
-
-    first = first + ' ' + term4.n
-    secon = secon + '=' + _fillLine(lt3)
-    third = third + ' ' + _fillSpace(sd3) + term4.d 
-    if(third.length < first.length)  {
-        third = third + _fillSpace(first.length - third.length)
-    }
-
-    if (first.length !== secon.length || secon.length !== third.length) {
-        console.error('Rows mismatch:')
-        console.error('(l:' + first.length + ')' + first)
-        console.error('(l:' + secon.length + ')' + secon)
-        console.error('(l:' + third.length + ')' + third)
-    }
-
-    // optional extension with shortening term
-    const t4: FractionToken = _exts[5] ? { n: _exts[5][0].toString(), d: _exts[5][1].toString() } : undefined
-    if (t4) {
-        let sn4 = calculate_additional_space(t4.n.length, t4.d.length)
-        let lt4 = t4.n.length > t4.d.length ? t4.n.length : t4.d.length
-        let sd4 = calculate_additional_space(t4.d.length, t4.n.length)
-        first = first + ' ' + _fillSpace(sn4) + t4.n
-        secon = secon + '=' + _fillLine(lt4)
-        third = third + ' ' + _fillSpace(sd4) + t4.d
-        if(third.length < first.length) {
-            third = third + _fillSpace(first.length + third.length)
+        // possible shortening
+        const term3: FractionToken = _exts[_i] ? { n: _exts[_i][0].toString(), d: _exts[_i][1].toString() } : undefined
+        if (term3) {
+            if (gcd(Number.parseInt(term3.n), Number.parseInt(term3.d)) > 1) {
+                const shorten_term = _renderFractionToken(term3)
+                _rendered = _append(_rendered, shorten_term)
+            }
         }
     }
 
-    let svn = calculate_additional_space(_val[0].toString().length, _val[1].toString().length)
-    let vl = _val[0].toString().length > _val[1].toString().length ? _val[0].toString().length : _val[1].toString().length
-    let svd = calculate_additional_space(_val[1].toString().length, _val[0].toString().length)
-    first = first + ' ' + _fillSpace(svn) + _val[0]
-    secon = secon + '=' + _fillLine(vl)
-    third = third + ' ' + _fillSpace(svd) + _val[1]
+    // all have a final value
+    const value: FractionRendered = _renderFractionToken({ n: _val[0].toString(), d: _val[1].toString() })
+    _rendered = _append(_rendered, value)
 
-    if (first.length !== secon.length || secon.length !== third.length) {
+    // some diagnostics
+    if (_rendered.nom.length !== _rendered.str.length || _rendered.str.length !== _rendered.den.length) {
         console.error('Rows mismatch after adding final tokens:')
-        console.error('(l:' + first.length + ')' + first)
-        console.error('(l:' + secon.length + ')' + secon)
-        console.error('(l:' + third.length + ')' + third)
+        console.error('(l:' + _rendered.nom.length + ')' + _rendered.nom)
+        console.error('(l:' + _rendered.str.length + ')' + _rendered.str)
+        console.error('(l:' + _rendered.den.length + ')' + _rendered.den)
     }
 
-    result.push({ rendered: first, type: 'FRACTION_NOMINATOR' });
-    result.push({ rendered: secon, type: 'FRACTION_STRIKE' });
-    result.push({ rendered: third, type: 'FRACTION_DENOMINATOR' });
+    result.push({ rendered: _rendered.nom, type: 'FRACTION_NOMINATOR' });
+    result.push({ rendered: _rendered.str, type: 'FRACTION_STRIKE' });
+    result.push({ rendered: _rendered.den, type: 'FRACTION_DENOMINATOR' });
 
     // sanitize
     if (!Array.isArray(exercise.rendered)) {
@@ -497,8 +515,44 @@ function renderExtensionFraction(exercise:Exercise, sign: string) {
     return exercise;
 }
 
-interface FractionToken {
-    n: string, d: string
+/**
+ * 
+ * Important Util Function that also sanitizes each row after appending
+ * 
+ * @param token1 
+ * @param opts 
+ */
+export function _renderFractionToken(token1: FractionToken, opts?: {}): FractionRendered {
+    const space_nom = calculate_additional_space(token1.n.length, token1.d.length)
+    const len_str = token1.n.length > token1.d.length ? token1.n.length : token1.d.length
+    let space_den = calculate_additional_space(token1.d.length, token1.n.length)
+    if (opts) {
+        if (opts['type'] && opts['type'] === 'CONVERT_QUANTITIES') {
+            if (token1.n.length > token1.d.length) {
+                space_den = Math.ceil(token1.n.length / 2) - Math.ceil(token1.d.length / 2)
+            }
+        }
+    }
+
+    let _n = _fillSpace(space_nom) + token1.n
+    const _l = _fillLine(len_str)
+    let _d = _fillSpace(space_den) + token1.d
+
+    if (opts) {
+        if (opts['type'] && opts['type'] === 'CONVERT_QUANTITIES') {
+            if (_d.length < _n.length) {
+                _d = _d + _fillSpace(_n.length - _d.length)
+            } else if(_n.length < _d.length) {
+                _n = _n + _fillSpace(_d.length - _n.length)
+            }
+        }
+    }
+
+    return { den: _d, str: _l, nom: _n }
+}
+
+function _append(f_prev: FractionRendered, f_curr: FractionRendered): FractionRendered {
+    return { nom: f_prev.nom + ' ' + f_curr.nom, str: f_prev.str + '=' + f_curr.str, den: f_prev.den + ' ' + f_curr.den }
 }
 
 function calculate_additional_space(a: number, b: number): number {

@@ -1,12 +1,17 @@
-import { assert } from 'chai';
+import { assert } from 'chai'
+import * as fs from 'fs'
+
 import {
     addFraction,
     subFraction,
+    multFraction,
+    divFraction,
     Fraction,
     Exercise,
     ExerciseSet,
     Options,
-    makeSet
+    makeSet,
+    makeExercisePDF
 } from '../src/exercises.math';
 import {
     addN50N25Nof10,
@@ -17,7 +22,9 @@ import {
     mult_N999_N99,
     mult_N999_N999,
     div_even,
-    add_fraction
+    add_fraction,
+    mult_fraction,
+    div_fraction
 } from '../src/exercises.math.options';
 import {
     Rendered
@@ -27,6 +34,16 @@ import {
  * Test Exercise Functions
  */
 describe('Rational Functions', () => {
+    it('div rationales: 5/12 : 5/8 => 2/3', () => {
+        const actual1: Fraction = divFraction([5, 12], [5, 8])
+        const expected1: Fraction = [2, 3]
+        assert.deepEqual(actual1, expected1)
+    });
+    it('mult rationales: 2/3 * 5/8 => 5/12', () => {
+        const actual1: Fraction = multFraction([2, 3], [5, 8])
+        const expected1: Fraction = [5, 12]
+        assert.deepEqual(actual1, expected1)
+    });
     it('sub rationales: 1/2 - 2/11 => 7/22', () => {
         const actual1: Fraction = subFraction([1, 2], [2, 11])
         const expected1: Fraction = [7, 22]
@@ -129,7 +146,7 @@ describe('ExerciseTypes', function () {
 describe('ChainOperators', function () {
     it('should generate 2 Exercises with 3 operands and 2x add', async () => {
         const opts: Options = {
-            quantity: 2, level: 1, set: "N",
+            quantity: 2, set: "N",
             operations: ['add', 'add']
         };
         const set = await makeSet([opts])
@@ -144,7 +161,7 @@ describe('ChainOperators', function () {
 
     it('should generate 2 Exercises with 3 operands, add and sub', async () => {
         const opts: Options = {
-            quantity: 2, level: 1, set: "N",
+            quantity: 2, set: "N",
             operations: ['add', 'sub'],
             operands: [
                 { rangeN: { min: 20, max: 50 } },
@@ -166,7 +183,7 @@ describe('ChainOperators', function () {
 
     it('should generate Exercise with 4x mult', async () => {
         const opts: Options = {
-            level: 1, quantity: 1, set: "N",
+            quantity: 1, set: "N",
             operations: ['mult', 'mult', 'mult', 'mult'],
             operands: [
                 { rangeN: { max: 5 } },
@@ -193,7 +210,7 @@ describe('Addition with Carry', function () {
             quantity: 1,
             set: 'N',
             extension: 'ADD_CARRY',
-            level: 2,
+            label: 'add_carry',
             operations: ['add', 'add'],
             operands: [{ exactMatchOf: 9903 }, { exactMatchOf: 819 }, { exactMatchOf: 77 }]
         };
@@ -211,7 +228,7 @@ describe('Addition with Carry', function () {
         const opts: Options = {
             quantity: 1,
             extension: 'ADD_CARRY',
-            level: 2,
+            label: 'add_carry',
             set: "N",
             operations: ['add', 'add'],
             operands: [{ exactMatchOf: 601 }, { exactMatchOf: 373 }, { exactMatchOf: 83 }]
@@ -231,7 +248,7 @@ describe('Addition with Carry', function () {
     it('regression test 4250+314+80 should generate carry 100', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 2,
+            label: 'add_carry',
             extension: 'ADD_CARRY',
             set: "N",
             operations: ['add', 'add'],
@@ -252,7 +269,7 @@ describe('Addition with Carry', function () {
     it('regression test 6714+306+75 should generate carry 1010', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 2,
+            label: 'add_carry',
             extension: 'ADD_CARRY',
             set: "N",
             operations: ['add', 'add'],
@@ -277,7 +294,7 @@ describe('Subtraction with Carry', function () {
     it('should generate 1 Subtraction with Carry ', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 3,
+            label: 'sub_carry',
             set: "N",
             extension: 'SUB_CARRY',
             operations: ['sub'],
@@ -305,7 +322,7 @@ describe('Subtraction with Carry', function () {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -334,7 +351,7 @@ describe('Subtraction with Carry', function () {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -358,11 +375,11 @@ describe('Subtraction with Carry', function () {
         }
     });
 
-    it('bugfix test: 4252 - 929 should generate maskedCarryStr 0110', async () => {
+    it('[BUGFIX] test: 4252 - 929 should generate maskedCarryStr 0110', async () => {
         const opts: Options = {
             quantity: 1,
             set: "N",
-            level: 3,
+            label: 'sub_carry',
             extension: 'SUB_CARRY',
             operations: ['sub'],
             operands: [
@@ -390,7 +407,6 @@ describe('Multiplication with grid-like Extensions', function () {
     it('should generate Mulitplication Extensions for f_1 = 755 , f_2 = 6', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 4,
             extension: 'MULT_MULT',
             set: "N",
             operations: ['mult'],
@@ -400,9 +416,7 @@ describe('Multiplication with grid-like Extensions', function () {
         const _sets = await makeSet([opts])
         const exercise = _sets[0].exercises[0]
         assert.isNotNull(exercise.expression.value);
-        const actualExtensions = exercise.extension.extensions;
         const actRendStrs: Rendered[] = exercise.rendered
-        //console.log('### API ' + JSON.stringify(actRendStrs))
         assert.equal(actRendStrs[0].rendered, '755 * 6');
         assert.isDefined(actRendStrs[1])
         assert.equal(actRendStrs[1].rendered, '     ?0');
@@ -446,14 +460,14 @@ describe('Multiplication with grid-like Extensions', function () {
 });
 
 /**
- * Multiplication
+ * Division (even)
  */
 describe('Division without rest API', function () {
 
-    it('bugfix test 627 : 11 = 57', async () => {
+    it('[BUGFIX] test 627 : 11 = 57', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 5,
+            label: 'div_even',
             set: "N",
             extension: 'DIV_EVEN',
             operations: ['div'],
@@ -470,10 +484,10 @@ describe('Division without rest API', function () {
         assert.equal(5, exercise.rendered.length);
     });
 
-    it('bugfix test 1012 : 4 = 253', async () => {
+    it('[BUGFIX] test 1012 : 4 = 253', async () => {
         const opts: Options = {
             quantity: 1,
-            level: 5,
+            label: 'div_even',
             set: "N",
             extension: 'DIV_EVEN',
             operations: ['div'],
@@ -490,7 +504,7 @@ describe('Division without rest API', function () {
         assert.equal(7, exercise.rendered.length);
     });
 
-    it('should generate 3 even divisions with d_2 in {50 .. 99} and q_0 {2..99}', async function () {
+    it('should generate 3 even division exercises from options', async () => {
         const sets = await makeSet([div_even])
         assert.equal(1, sets.length);
         assert.isTrue(sets[0].exercises.length > 2);
@@ -500,6 +514,24 @@ describe('Division without rest API', function () {
             const actualExtensions = exercise.extension.extensions;
             assert.isNotEmpty(actualExtensions);
         }
+    });
+
+    it('should generate 1000 even divisions exercises', async () => {
+        const os: Options = {
+            quantity: 1000,
+            set: 'N',
+            label: 'div_even',
+            extension: 'DIV_EVEN',
+            operations: ['div'],
+            operands: [
+                { rangeN: { min: 50, max: 256 } },
+                { rangeN: { min: 2, max: 12 } },
+            ]
+        };
+        const sets = await makeSet([os])
+        assert.equal(1, sets.length);
+        assert.isTrue(sets[0].exercises.length === 1000);
+        sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
     });
 })
 
@@ -522,15 +554,15 @@ describe('Fraction API', function () {
             extension: 'ADD_FRACTION',
             operations: ['addQ'],
             operands: [
-                { exactMatchOf: [1,4] },
-                { exactMatchOf: [1,4] },
+                { exactMatchOf: [1, 4] },
+                { exactMatchOf: [1, 4] },
             ]
         }
         const sets = await makeSet([o])
         const rs: Rendered[] = sets[0].exercises[0].rendered
         assert.equal(rs[0].rendered, '1 1 (1*?)+(?*1) ?+?  ? 1')
         assert.equal(rs[1].rendered, '_+_=___________=___=__=_')
-        assert.equal(rs[2].rendered, '4 4     ?*?     1?  1? ?')
+        assert.equal(rs[2].rendered, '4 4     ?*?      1? 1? ?')
     });
 
     it('should generate add fractions 13/8 + 7/4 = 27/8', async function () {
@@ -540,15 +572,15 @@ describe('Fraction API', function () {
             extension: 'ADD_FRACTION',
             operations: ['addQ'],
             operands: [
-                { exactMatchOf: [13,8] },
-                { exactMatchOf: [7,4] },
+                { exactMatchOf: [13, 8] },
+                { exactMatchOf: [7, 4] },
             ]
         }
         const sets = await makeSet([o])
         const rs: Rendered[] = sets[0].exercises[0].rendered
         assert.equal(rs[0].rendered, '13 7 (1?*?)+(?*?) ??+?? 10? ??')
         assert.equal(rs[1].rendered, '__+_=____________=_____=___=__')
-        assert.equal(rs[2].rendered, ' 8 4     ?*?       ??    ??  ?')
+        assert.equal(rs[2].rendered, ' 8 4     ?*?        ??   ??  ?')
     });
 
     it('should generate a sub fractions 1/2 - 2/11 = 7/22', async function () {
@@ -558,8 +590,8 @@ describe('Fraction API', function () {
             extension: 'SUB_FRACTION',
             operations: ['subQ'],
             operands: [
-                { exactMatchOf: [1,2] },
-                { exactMatchOf: [2,11] },
+                { exactMatchOf: [1, 2] },
+                { exactMatchOf: [2, 11] },
             ]
         }
         const sets = await makeSet([o])
@@ -568,4 +600,89 @@ describe('Fraction API', function () {
         assert.equal(rs[1].rendered, '_-__=____________=____=__')
         assert.equal(rs[2].rendered, '2 11     ?*11      ??  ??')
     });
-});
+
+    it('should generate 1000 sub fractions exercises from options', async function () {
+        const opts: Options = {
+            quantity: 1000,
+            set: 'Q',
+            extension: 'SUB_FRACTION',
+            operations: ['subQ'],
+            operands: [
+                { rangeQ: { min: [1, 8], max: [64, 8] } },
+                { rangeQ: { min: [1, 12], max: [24, 12] } },
+            ]
+        };
+        const sets = await makeSet([opts])
+        sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
+    });
+
+    it('should generate mult fraction 2/3 * 5/8 = 5/12', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'MULT_FRACTION',
+            operations: ['multQ'],
+            operands: [
+                { exactMatchOf: [2, 3] },
+                { exactMatchOf: [5, 8] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '2 5 ?*? 10  ?')
+        assert.equal(rs[1].rendered, '_*_=___=__=__')
+        assert.equal(rs[2].rendered, '3 8 ?*? ?? 1?')
+    });
+
+    it('should generate mult fractions exercises from options', async function () {
+        const sets = await makeSet([mult_fraction])
+        sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
+    });
+
+    it('should generate div fractions exercises from options', async () => {
+        const sets = await makeSet([div_fraction])
+        sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
+    });
+
+    it('should generate 1000 div fraction exercises', async () => {
+        const o: Options = {
+            quantity: 1000,
+            set: 'Q',
+            extension: 'DIV_FRACTION',
+            operations: ['ratio'],
+            operands: [
+                { rangeQ: { min: [1, 36], max: [144, 36] } },
+                { rangeQ: { min: [1, 36], max: [72, 36] } },
+            ]
+        }
+        const sets = await makeSet([o])
+        sets[0].exercises.forEach(exercise => assert.isDefined(exercise.rendered))
+    });
+
+    it('[BUGFIX] should generate mult fraction 1/6 * 1/3 = 1/18', async function () {
+        const o: Options = {
+            quantity: 1,
+            set: 'Q',
+            extension: 'MULT_FRACTION',
+            operations: ['multQ'],
+            operands: [
+                { exactMatchOf: [1, 6] },
+                { exactMatchOf: [1, 3] },
+            ]
+        }
+        const sets = await makeSet([o])
+        const rs: Rendered[] = sets[0].exercises[0].rendered
+        assert.equal(rs[0].rendered, '1 1 1*1  1')
+        assert.equal(rs[1].rendered, '_*_=___=__')
+        assert.equal(rs[2].rendered, '6 3 ?*? 1?')
+    })
+
+    const timestamp = Date.now()
+    const exercises = 'div_even,mult_fraction'
+    const fileName = 'test_make_exercises_serializer_' + timestamp + '.pdf'
+
+    it('should serialize "' + exercises + '" NodeJS Stream to "' + fileName + '"', async () => {
+        const fsStream: NodeJS.WritableStream = fs.createWriteStream(fileName)
+        await makeExercisePDF(fsStream, exercises)
+    })
+})

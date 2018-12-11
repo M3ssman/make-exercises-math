@@ -7,6 +7,8 @@ import {
     extendMultCarry,
     extendDivEven,
     extendAddFraction,
+    extendMultFraction,
+    extendDivFraction,
     _compose_digit,
     _how_often,
     _greater,
@@ -41,10 +43,40 @@ describe('Extension Functions', () => {
 
 
 describe('Extension API', function () {
+    it('5/12 : 5/8 = 5/12 * 8/5 = (5*8)/(12*5) = 40/60 = 2/3', () => {
+        const expr: Expression = {
+            operations: ['div'],
+            operands: [[5, 12], [5, 8]],
+            value: [2, 3]
+        };
+        const ee: ExtensionExpression = extendDivFraction({ expression: expr }).extension;
+        assert.exists(ee)
+        assert.equal(ee.extensions[0].operands[0].toString(), '5,12');
+        assert.equal(ee.extensions[0].operands[1].toString(), '8,5');
+        assert.equal(ee.extensions[0].operands[2].toString(), '5,8');
+        assert.equal(ee.extensions[0].operands[3].toString(), '12,5');
+        assert.equal(ee.extensions[0].operands[4].toString(), '40,60');
+        assert.equal(ee.extensions[0].operands.length, 5)
+        assert.equal(ee.extensions[0].value.toString(), '2,3');
+    });
+    it('2/3 * 5/8 = (2*5)/(3*8) = 10/24 = 5/12', () => {
+        const expr: Expression = {
+            operations: ['mult'],
+            operands: [[2, 3], [5, 8]],
+            value: [5, 12]
+        };
+        const ee: ExtensionExpression = extendMultFraction({ expression: expr }).extension;
+        assert.exists(ee)
+        assert.equal(ee.extensions[0].operands[0].toString(), '2,5');
+        assert.equal(ee.extensions[0].operands[1].toString(), '3,8');
+        assert.equal(ee.extensions[0].operands[2].toString(), '10,24');
+        assert.equal(ee.extensions[0].value.toString(), '5,12');
+    });
+
     it('9/8 + 5/12 = (9*12 + 8*5)/(8*12) = 37/24', () => {
         const expr: Expression = {
             operations: ['add'],
-            operands:[[9,8], [5,12]],
+            operands: [[9, 8], [5, 12]],
             value: [37, 24]
         };
         const ee: ExtensionExpression = extendAddFraction({ expression: expr }).extension;
@@ -90,7 +122,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[0].operands[5].toString(), '15,18');
     });
 
-    it('bugfix test 2222 : 11 = 202', () => {
+    it('[BUGFIX] test 2222 : 11 = 202', () => {
         const expr: Expression = {
             operations: ['div'],
             operands: [2222, 11],
@@ -109,14 +141,13 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[2].value.toString(), '0,0');
     });
 
-    it('bugfix test 1100 : 10 = 110', () => {
+    it('[BUGFIX] test 1100 : 10 = 110', () => {
         const expr: Expression = {
             operations: ['div'],
             operands: [1100, 10],
             value: 110
         };
         const ee: ExtensionExpression = extendDivEven({ expression: expr }).extension
-        //console.log('### EXT ' + JSON.stringify(ee))
         assert.equal(3, ee.extensions.length);
         assert.equal(ee.extensions[0].operands[0].toString(), '1,1');
         assert.equal(ee.extensions[0].operands[1].toString(), '1,0');
@@ -129,7 +160,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[2].value.toString(), '0');
     });
 
-    it('bugfix test 636 : 6 = 106', () => {
+    it('[BUGFIX] test 636 : 6 = 106', () => {
         const expr: Expression = {
             operations: ['div'],
             operands: [636, 6],
@@ -148,7 +179,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[2].value.toString(), '0,0');
     });
 
-    it('bugfix test 549 : 3 = 183', () => {
+    it('[BUGFIX] test 549 : 3 = 183', () => {
         const expr: Expression = {
             operations: ['div'],
             operands: [549, 3],
@@ -167,7 +198,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[2].value.toString(), '0');
     });
 
-    it('bugfix test 627 : 11 = 57', () => {
+    it('[BUGFIX] test 627 : 11 = 57', () => {
         const expr: Expression = {
             operations: ['div'],
             operands: [627, 11],
@@ -179,7 +210,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[0].operands[1].toString(), '5,5');
     });
 
-    it('bugfix generate correct extensions for 630 / 9', () => {
+    it('[BUGFIX] generate correct extensions for 630 / 9', () => {
         const expr: Expression = {
             operands: [630, 9],
             operations: ['div'],
@@ -198,7 +229,7 @@ describe('Extension API', function () {
         assert.equal(ee.extensions[1].value.toString(), '0');
     });
 
-    it('bugfix generate correct extensions for 1012 / 4', () => {
+    it('[BUGFIX] generate correct extensions for 1012 / 4', () => {
         const expr: Expression = {
             operands: [1012, 4],
             operations: ['div'],
@@ -318,7 +349,7 @@ describe('Extension API', function () {
         assert.equal('2,6,2,1,4,4', ee.extensions[3].value.toString());
     });
 
-    it('bugfix test for 375*4 => 1500', function () {
+    it('[BUGFIX] test for 375*4 => 1500', function () {
         const expr: Expression = {
             operands: [375, 4],
             operations: ['mult'],
