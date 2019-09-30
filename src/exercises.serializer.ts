@@ -41,7 +41,7 @@ export const default_fontsize = 16
 export const default_pageDim = [600, 840]
 
 export function preparePageOptions(pageOptions?: PageOptions): PageOptions {
-    let theSienna = 'Mathematik :: Sienna Metzner, 4c'
+    let theSienna = 'Mathematik :: Sienna Metzner, 5a'
     let fontSrc = default_pdfkit_fontsrc
     let fontFam = default_fontfamily
     let fontSize = default_fontsize
