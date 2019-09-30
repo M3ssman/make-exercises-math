@@ -31,18 +31,18 @@
     "email": "uwe.hartwig@bitsrc.info"
   },
   "dependencies": {
-    "@types/chai": "^4.1.7",
-    "@types/mocha": "^5.2.5",
-    "@types/node": "^10.12.12",
-    "@types/pdfkit": "^0.7.36",
-    "moment": "^2.22.2",
-    "pdfkit": "^0.8.3"
+    "@types/chai": "^4.2.3",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.0",
+    "@types/pdfkit": "^0.10.0",
+    "moment": "^2.24.0",
+    "pdfkit": "^0.10.0"
   },
   "devDependencies": {
     "chai": "^4.2.0",
-    "mocha": "^5.2.0",
-    "nyc": "^13.1.0",
-    "ts-node": "^6.0.3"
+    "mocha": "^6.2.0",
+    "nyc": "^14.1.0",
+    "ts-node": "^8.4.0"
   },
   "nyc": {
     "include": [
