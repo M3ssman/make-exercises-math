@@ -458,7 +458,10 @@ function renderExtensionFraction(exercise: Exercise, sign: string) {
 
         // 3rd term: extension 3 / extension 4
         // attention! beware of plain numbers for denominator!
-        const _d4 = _exts[4] instanceof Array ? _exts[4][0].toString() : _exts[4].toString()
+        let _d4 = _exts[4].toString()
+        if(_exts[4] instanceof Array) {
+            _d4 = _exts[4][0].toString()
+        }
         const term3: FractionToken = { n: _exts[3][0] + sign + _exts[3][1], d: _d4 }
         const renderedToken3: FractionRendered = _renderFractionToken(term3, { type: 'CONVERT_QUANTITIES' })
         _rendered = _append(_rendered, renderedToken3)
