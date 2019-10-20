@@ -208,17 +208,27 @@ export function renderExtensionsMultiplication(exercise: Exercise): Exercise {
         // first row must be the longest row
         const max_len = rowOne.rendered.length;
 
-        (<number[][]>exercise.extension.extensions[0].operands)
-            //.map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
-            .map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
-            .map((opStr: string, i: number) => replaceLeadingZeros(opStr, i))
-            .map(_s3 => prepend_ws(max_len, _s3))
-            .forEach(_s4 => result.push({ type: im, rendered: _s4 }))
+        // determine length of second factor
+        // having less than one extension means only one digit
+        let _i = 0
+        // more than 1 extension means at least 2 digits and a final aggregation stage
+        // we only pick the final one and ignore more intermediate steps
+        if(exercise.extension.extensions.length > 1) {
+            _i = exercise.extension.extensions.length-1
+        }
 
+        (<number[][]>exercise.extension.extensions[_i].operands)
+        //.map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
+        .map(op => op.reduce((pop, cop) => pop + cop.toString(), ''))
+        .map((opStr: string, i: number) => replaceLeadingZeros(opStr, i))
+        .map(_s3 => prepend_ws(max_len, _s3))
+        .forEach(_s4 => result.push({ type: im, rendered: _s4 }))
+            
         let carryStr = '';
         const str_val = exercise.expression.value.toString();
-        if (exercise.extension.extensions[0].carry && exercise.extension.extensions[0].carry.filter(d => d > 0).length > 0) {
-            carryStr = exercise.extension.extensions[0].carry.reduce((p, c) => p + c, '') || '';
+        console.log('#### VAL ' + str_val)
+        if (exercise.extension.extensions[_i].carry && exercise.extension.extensions[_i].carry.filter(d => d > 0).length > 0) {
+            carryStr = exercise.extension.extensions[_i].carry.reduce((p, c) => p + c, '') || '';
             // handle carry if exists
             if (carryStr && carryStr.trim().length > 0) {
                 const car: Rendered = { type: 'CARRY', rendered: prepend_ws(max_len, carryStr) }

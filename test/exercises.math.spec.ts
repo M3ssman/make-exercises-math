@@ -419,6 +419,8 @@ describe('Multiplication with grid-like Extensions', function () {
         const actRendStrs: Rendered[] = exercise.rendered
         assert.equal(actRendStrs[0].rendered, '755 * 6');
         assert.isDefined(actRendStrs[1])
+        assert.equal(exercise.extension.extensions.length, 1)
+
         assert.equal(actRendStrs[1].rendered, '     ?0');
         assert.equal(actRendStrs[2].rendered, '    ?00');
         assert.equal(actRendStrs[3].rendered, '   ??00')
@@ -434,6 +436,40 @@ describe('Multiplication with grid-like Extensions', function () {
             const actualExtensions = exercise.extension.extensions;
             assert.isNotEmpty(actualExtensions);
         }
+    });
+
+    it('should generate Mulitplications Extensions for f_1 = 755 , f_2 = 68', async () => {
+        const opts: Options = {
+            quantity: 1,
+            extension: 'MULT_MULT',
+            set: "N",
+            operations: ['mult'],
+            operands: [{ exactMatchOf: 755 }, { exactMatchOf: 68 }]
+        };
+        const sets = await makeSet([opts])
+        assert.equal(1, sets.length);
+        const exercise = sets[0].exercises[0]
+        assert.isNotNull(exercise.expression.value);
+        const actRendStrs: Rendered[] = exercise.rendered
+        assert.equal(actRendStrs[0].rendered, '755 * 68');
+        const _l = actRendStrs[0].rendered.length
+        assert.equal(_l, 8)
+        console.warn(JSON.stringify(exercise))
+        assert.isDefined(actRendStrs[1])
+        assert.equal(exercise.extension.extensions.length, 3)
+
+        // detailed asserts
+        assert.equal(actRendStrs[1].rendered.length, _l)
+        assert.equal(actRendStrs[2].rendered.length, _l)
+        assert.equal(actRendStrs[3].rendered.length, _l)
+        assert.equal(actRendStrs[4].rendered.length, _l)
+        assert.equal(actRendStrs[1].rendered, '    ?0?0');
+        assert.equal(actRendStrs[2].rendered, '   ???00');
+        assert.equal(actRendStrs[3].rendered, '   ?    ')
+
+        // here all digits are to be replaced by default string renderer, 
+        // therefore the last '?' which in reality is a trailing '0', too
+        assert.equal(actRendStrs[4].rendered, '   ?????')
     });
 
     it('should generate 3 medium Mulitplications with f_1 {100..999} and f_2 {10..99}', async () => {
