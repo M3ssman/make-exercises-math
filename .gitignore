@@ -6,6 +6,7 @@ node_modules
 
 # ignore generated map files
 **/*.js.map
+*.js
 
 # ignore transcompiled JavaScript
 src/*.js
